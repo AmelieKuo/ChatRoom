@@ -1,9 +1,14 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import AutoImport from 'unplugin-auto-import/vite';
+import Components from 'unplugin-vue-components/vite';
+import { NaiveUiResolver } from 'unplugin-vue-components/resolvers';
+
 export default defineNuxtConfig({
   // 在配置對象之外使用 console.log 而不是在回調函數內
   hooks: {
     'ready': () => {
       console.log('====================模式與環境====================');
+      console.log('WebName', process.env.NUXT_TITLE);
       console.log('baseUrl：', process.env.NUXT_BASE_API);
       console.log('apiUrl：', process.env.NUXT_PUBLIC_API_URL);
       console.log('=================================================');
@@ -13,12 +18,20 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_BASE_API,
-      APP_TITLE: process.env.NUXT_APP_TITLE,
-      imgUrl: process.env.NUXT_IMG_URL
+      APP_TITLE: process.env.NUXT_TITLE,
+      imgUrl: process.env.NUXT_IMG_URL,
+      LineChannel: process.env.NUXT_LINE_CHANNEL_ID,
+      LineSecret: process.env.NUXT_LINE_CHANNEL_SECRET,
     }
   },
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
+    },
+  },
 
-  css: ['~/assets/css/normalize.css'],
+  css: ['~/assets/css/normalize.css', '~/assets/css/main.css'],
 
   imports: {
     dirs: ['stores'] // 預設有 composables 和 utils
@@ -26,7 +39,7 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  modules: ['nuxtjs-naive-ui'],
+  modules: ['nuxtjs-naive-ui', '@nuxtjs/tailwindcss'],
 
   app: {
     head: {
@@ -43,7 +56,6 @@ export default defineNuxtConfig({
       name: 'fade', mode: 'out-in'
     }
   },
-
   vite: {
     server: {
       proxy: process.env.NODE_ENV !== 'Dev' ? {} : {
@@ -53,5 +65,24 @@ export default defineNuxtConfig({
         },
       },
     },
+    plugins: [
+      AutoImport({
+        imports: [
+          {
+            'naive-ui': [
+              'useButton',
+              'useDialog',
+              'useMessage',
+              'useNotification',
+              'useLoadingBar'
+            ]
+          }
+        ]
+      }),
+      Components({
+        resolvers: [NaiveUiResolver()]
+      })
+    ]
+    
   }
 });

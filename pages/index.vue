@@ -13,7 +13,9 @@ onMounted(() => {
   getAuth()
 })
 
-
+definePageMeta({
+  middleware: ['auth'],
+});
 </script>
 
 
