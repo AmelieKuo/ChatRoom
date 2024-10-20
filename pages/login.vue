@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import generateUUID from '~/utils/uuid';
+
 const { $dayjs } = useNuxtApp() as any;
 const runtimeConfig = useRuntimeConfig();
 const { LineChannel, LineSecret } = runtimeConfig.public;
@@ -9,7 +11,8 @@ const router = useRouter();
 const route = useRoute();
 
 const handleClick = async() => {
-  const link = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LineChannel}&redirect_uri=http://localhost:3000/login&state=12345abcde&scope=profile%20openid&prompt=consent&ui_locales=zh-TW&client_secret=${LineSecret}`
+  const tempUUID = generateUUID();
+  const link = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LineChannel}&redirect_uri=http://localhost:3000/login&state=${tempUUID}&scope=profile%20openid&prompt=consent&ui_locales=zh-TW&client_secret=${LineSecret}`
   window.location.href = link;
 }
 
