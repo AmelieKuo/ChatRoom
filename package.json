@@ -11,20 +11,21 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@nuxt/eslint": "^0.6.0",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
-    "@pinia/nuxt": "^0.5.5",
     "dayjs": "^1.11.13",
     "eslint": "^9.7.0",
     "nuxt": "^3.13.0",
     "nuxtjs-naive-ui": "^1.0.2",
-    "pinia": "^2.2.4",
     "vue": "^3.5.10",
     "vue-router": "^4.3.2"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^0.6.0",
     "@nuxtjs/tailwindcss": "^6.12.1",
+    "@pinia/nuxt": "^0.5.5",
     "naive-ui": "^2.40.1",
+    "pinia": "^2.2.4",
     "postcss": "^8.4.47",
     "unplugin-auto-import": "^0.18.3",
     "unplugin-vue-components": "^0.27.4"

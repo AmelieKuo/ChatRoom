@@ -1,55 +1,21 @@
 <script setup lang="ts">
-const { $dayjs } = useNuxtApp();
+const { $dayjs } = useNuxtApp() as any;
 const runtimeConfig = useRuntimeConfig();
 const { LineChannel, LineSecret } = runtimeConfig.public;
+const useAuth = useAuthStore();
+const { getProfile } = useAuth;
 
 const router = useRouter();
 const route = useRoute();
 
 const handleClick = async() => {
-
   const link = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LineChannel}&redirect_uri=http://localhost:3000/login&state=12345abcde&scope=profile%20openid&prompt=consent&ui_locales=zh-TW&client_secret=${LineSecret}`
-
   window.location.href = link;
 }
 
-const getProfile = async (accessToken: string, idToken: string) => {
-  try {
-    const userProfile = await $fetch('https://api.line.me/oauth2/v2.1/verify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Bearer ' + accessToken
-      },
-      body: new URLSearchParams({
-        'id_token': idToken,
-        'client_id': LineChannel,
-      })
-    })
-
-    // const loginToken = useCookie('roomToken',{
-    //   expires: new Date($dayjs(24, 'hour').utc()),
-    // });
-
-    const loginToken = useCookie('roomToken');
-
-    // const expires = new Date($dayjs(24, 'hour').utc());
-    loginToken.value = userProfile.sub;
-    
-    // console.log(expires)
-
-    router.push('/')
-  } catch (error) {
-    console.log(error)
-  }
-
-
-}
-
-
 const getToken = async () => {
   try {
-    const tokenResponse = await $fetch('https://api.line.me/oauth2/v2.1/token', {
+    const tokenResponse: any = await $fetch('https://api.line.me/oauth2/v2.1/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -63,10 +29,24 @@ const getToken = async () => {
       })
     })
 
-    const accessToken = tokenResponse.access_token;
-    const idToken = tokenResponse.id_token;
+    const obj = {
+      accessToken: tokenResponse.access_token,
+      idToken: tokenResponse.id_token
+    }
 
-    getProfile(accessToken,idToken)
+    const tempTime = $dayjs().add(23, 'hour')
+
+    const maxDate = new Date($dayjs(tempTime).utc().format())
+
+    const loginToken = useCookie('roomToken',{
+      expires: maxDate,
+    });
+
+    loginToken.value = JSON.stringify(obj);
+
+    await getProfile(obj.accessToken, obj.idToken);
+    await router.push('/')
+
   } catch (error) {
     console.log(error)
   }
