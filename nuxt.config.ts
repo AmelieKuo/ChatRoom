@@ -39,8 +39,12 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  modules: ['nuxtjs-naive-ui', '@nuxtjs/tailwindcss'],
-
+  modules: ['nuxtjs-naive-ui', '@nuxtjs/tailwindcss', '@nuxt/eslint', '@pinia/nuxt'],
+  eslint: {
+    config: {
+      stylistic: true,
+    }
+  },
   app: {
     head: {
       title: process.env.NUXT_APP_TITLE || 'Default Title',

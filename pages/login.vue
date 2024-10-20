@@ -79,7 +79,7 @@ onMounted(() => {
 })
 
 definePageMeta({
-  middleware: ['auth'],
+  middleware: ['non-login'],
 });
 </script>
 
