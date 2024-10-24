@@ -5,7 +5,7 @@ export default async function instance(reqUrl: string, options: any, isUnLoad: b
 
   const { data, pending, error, refresh } = await $fetch(reqUrl, {
     baseURL: apiBase,
-    method: options.method, // Comma is important
+    method: options.method,
     body: Object.keys(options.data || {}).length ? options.data : null, // 處理空 body
     params: options.params || {}, // URL 查詢參數
     onRequest({ options }) {
@@ -14,7 +14,7 @@ export default async function instance(reqUrl: string, options: any, isUnLoad: b
       options.headers['Content-Type'] = 'application/json'; // 默認為 JSON 請求
 
       if (tokenAuth.value) {
-        options.headers.authorization = `Bearer ${tokenAuth.value}`; // 如果存在 token，則設置 Authorization header
+        options.headers.authorization = `Bearer ${tokenAuth.value.accessToken}`; // 如果存在 token，則設置 Authorization header
       }
     },
     onRequestError({ error }) {
