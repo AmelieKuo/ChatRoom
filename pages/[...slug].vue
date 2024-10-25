@@ -1,7 +1,7 @@
 <script setup>
-const route = useRoute();
-const event = useRequestEvent();
-setResponseStatus(event, 404);
+const route = useRoute()
+const event = useRequestEvent()
+setResponseStatus(event, 404)
 </script>
 
 <template>

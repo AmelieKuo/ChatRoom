@@ -2,10 +2,10 @@
 const router = useRouter()
 const route = useRoute()
 
-const runtimeConfig = useRuntimeConfig();
-const { LineChannel, LineSecret } = runtimeConfig.public;
+const runtimeConfig = useRuntimeConfig()
+const { LineChannel, LineSecret } = runtimeConfig.public
 
-const getProfile = async() => {
+const getProfile = async () => {
   try {
     const data = await $fetch('https://api.line.me/oauth2/v2.1/token', {
       method: 'POST',
@@ -13,18 +13,19 @@ const getProfile = async() => {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        'grant_type': 'authorization_code',
-        'code': route.query.code,
-        'client_id': LineChannel,
-        'redirect_uri': 'http://localhost:3000/',
-        'client_secret': LineSecret
-      })
+        grant_type: 'authorization_code',
+        code: route.query.code,
+        client_id: LineChannel,
+        redirect_uri: 'http://localhost:3000/',
+        client_secret: LineSecret,
+      }),
     })
 
     console.log(data)
 
     router.push('/')
-  } catch (error) {
+  }
+  catch (error) {
     console.log(error)
   }
 }
@@ -32,15 +33,15 @@ const getProfile = async() => {
 onMounted(() => {
   if (route.query.code) {
     getProfile()
-  }else{
+  }
+  else {
     router.push('/')
   }
 })
-
 </script>
 
 <template>
-    <section>
-      loading...
-    </section>
+  <section>
+    loading...
+  </section>
 </template>

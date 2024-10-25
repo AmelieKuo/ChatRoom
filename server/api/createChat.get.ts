@@ -1,7 +1,7 @@
-import generateUUID from '~/utils/uuid';
+import generateUUID from '~/utils/uuid'
 
 export default defineEventHandler(() => {
-  const temp = generateUUID();
-  console.log('temp', temp);
+  const temp = generateUUID()
+  console.log('temp', temp)
   return temp
 });

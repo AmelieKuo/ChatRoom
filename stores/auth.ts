@@ -1,15 +1,14 @@
-import { defineStore } from 'pinia';
+import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', () => {
-  
-  const runtimeConfig = useRuntimeConfig();
-  const { LineChannel } = runtimeConfig.public;
+  const runtimeConfig = useRuntimeConfig()
+  const { LineChannel } = runtimeConfig.public
 
-  const userProfile = ref<any>({});
+  const userProfile = ref<any>({})
 
   const setUserProfile = (profile: object) => {
-    userProfile.value = profile;
-  }
+    userProfile.value = profile
+  };
 
   const getProfile = async (accessToken: string, idToken: string) => {
     try {
@@ -17,16 +16,17 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Bearer ' + accessToken
+          'Authorization': 'Bearer ' + accessToken,
         },
         body: new URLSearchParams({
-          'id_token': idToken,
-          'client_id': LineChannel,
-        })
+          id_token: idToken,
+          client_id: LineChannel,
+        }),
       })
-      
+
       setUserProfile(data)
-    } catch (error) {
+    }
+    catch (error) {
       console.log(error)
     }
   }
@@ -36,4 +36,4 @@ export const useAuthStore = defineStore('auth', () => {
     setUserProfile,
     getProfile,
   }
-})
+});

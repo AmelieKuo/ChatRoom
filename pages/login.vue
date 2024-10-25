@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import generateUUID from '~/utils/uuid';
+import generateUUID from '~/utils/uuid'
 
-const { $dayjs } = useNuxtApp() as any;
-const runtimeConfig = useRuntimeConfig();
-const { LineChannel, LineSecret } = runtimeConfig.public;
-const useAuth = useAuthStore();
-const { getProfile } = useAuth;
+const { $dayjs } = useNuxtApp() as any
+const runtimeConfig = useRuntimeConfig()
+const { LineChannel, LineSecret } = runtimeConfig.public
+const useAuth = useAuthStore()
+const { getProfile } = useAuth
 
-const router = useRouter();
-const route = useRoute();
+const router = useRouter()
+const route = useRoute()
 
-const handleClick = async() => {
-  const tempUUID = generateUUID();
+const handleClick = async () => {
+  const tempUUID = generateUUID()
   const link = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LineChannel}&redirect_uri=http://localhost:3000/login&state=${tempUUID}&scope=profile%20openid&prompt=consent&ui_locales=zh-TW&client_secret=${LineSecret}`
-  window.location.href = link;
-}
+  window.location.href = link
+};
 
 const getToken = async () => {
   try {
@@ -24,33 +24,33 @@ const getToken = async () => {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        'grant_type': 'authorization_code',
-        'code': route.query.code,
-        'client_id': LineChannel,
-        'redirect_uri': 'http://localhost:3000/login',
-        'client_secret': LineSecret
-      })
+        grant_type: 'authorization_code',
+        code: route.query.code,
+        client_id: LineChannel,
+        redirect_uri: 'http://localhost:3000/login',
+        client_secret: LineSecret,
+      }),
     })
 
     const obj = {
       accessToken: tokenResponse.access_token,
-      idToken: tokenResponse.id_token
+      idToken: tokenResponse.id_token,
     }
 
     const tempTime = $dayjs().add(23, 'hour')
 
     const maxDate = new Date($dayjs(tempTime).utc().format())
 
-    const loginToken = useCookie('roomToken',{
+    const loginToken = useCookie('roomToken', {
       expires: maxDate,
-    });
+    })
 
-    loginToken.value = JSON.stringify(obj);
+    loginToken.value = JSON.stringify(obj)
 
-    await getProfile(obj.accessToken, obj.idToken);
+    await getProfile(obj.accessToken, obj.idToken)
     await router.push('/')
-
-  } catch (error) {
+  }
+  catch (error) {
     console.log(error)
   }
 }
@@ -63,20 +63,31 @@ onMounted(() => {
 
 definePageMeta({
   middleware: ['non-login'],
-});
+})
 </script>
 
 <template>
   <section class="w-full h-full min-h-[100dvh] flex justify-center items-center flex-col">
     <div class="w-[200px]">
-      <img src="~/assets/image/logo.svg" alt="">
+      <img
+        src="~/assets/image/logo.svg"
+        alt=""
+      >
     </div>
     <h1>歡迎使用 ChatRoom </h1>
     <!-- <n-avatar round size="medium" :bordered="true" src="~/assets/image/logo.svg" /> -->
-    <n-button color="#06C755" size="large" class="mt-[10px] font-bold" @click="handleClick">
+    <n-button
+      color="#06C755"
+      size="large"
+      class="mt-[10px] font-bold"
+      @click="handleClick"
+    >
       <template #icon>
         <div class="">
-          <img src="~/assets/icons/line.png" alt="">
+          <img
+            src="~/assets/icons/line.png"
+            alt=""
+          >
         </div>
       </template>
       使用 Line 帳號登入
