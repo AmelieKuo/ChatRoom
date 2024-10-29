@@ -13,6 +13,8 @@ onMounted(async () => {
 
 <template>
   <div class="w-full h-100% min-h-[100dvh]">
-    <NuxtPage />
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
   </div>
 </template>

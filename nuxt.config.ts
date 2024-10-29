@@ -68,9 +68,9 @@ export default defineNuxtConfig({
     ],
 
   },
-  typescript: {
-    typeCheck: true,
-  },
+  // typescript: {
+  //   typeCheck: true,
+  // },
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -79,18 +79,18 @@ export default defineNuxtConfig({
   },
   hooks: {
     ready: () => {
-      console.log('====================模式與環境====================')
+      console.log('====================模式與環境====================');
       console.log('WebTitle', process.env.NUXT_TITLE)
       console.log('apiBase', `${process.env.NUXT_BASE_URL}${process.env.NUXT_BASE_API}`)
-      console.log('=================================================')
+      console.log('=================================================');
     },
   },
-  eslint: {
-    checker: {
-      configType: 'eslintrc',
-    },
-    config: {
-      stylistic: true,
-    },
-  },
+  // eslint: {
+  //   checker: {
+  //     configType: 'eslintrc',
+  //   },
+  //   config: {
+  //     stylistic: true,
+  //   },
+  // },
 })

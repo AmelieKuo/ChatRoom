@@ -1,33 +1,37 @@
 import instance from './instance'
 
 function createRequest() {
-  const get = (url: string, params = {}, isUnLoad = false) => {
+  const get = (base?: string, url: string, params = {}, isUnLoad = false) => {
     return instance(url, {
-      method: 'get',
+      baseURL: base,
+      method: 'GET',
       params,
     }, isUnLoad)
-  };
+  }
 
-  const post = (url: string, body = {}, isUnLoad = false) => {
+  const post = (base?: string, url: string, body = {}, isUnLoad = false) => {
     return instance(url, {
+      baseURL: base,
       method: 'post',
       body,
     }, isUnLoad)
-  };
+  }
 
-  const put = (url: string, body = {}, isUnLoad = false) => {
+  const put = (base?: string, url: string, body = {}, isUnLoad = false) => {
     return instance(url, {
+      baseURL: base,
       method: 'put',
       body,
     }, isUnLoad)
-  };
+  }
 
-  const del = (url: string, body = {}, isUnLoad = false) => {
+  const del = (base?: string, url: string, body = {}, isUnLoad = false) => {
     return instance(url, {
+      baseURL: base,
       method: 'delete',
       body,
     }, isUnLoad)
-  };
+  }
 
   return {
     get,
