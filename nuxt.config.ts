@@ -24,7 +24,7 @@ export default defineNuxtConfig({
       name: 'fade', mode: 'out-in',
     },
     layoutTransition: {
-      name: 'fade', mode: 'out-in',
+      name: 'layout', mode: 'out-in',
     },
   },
 

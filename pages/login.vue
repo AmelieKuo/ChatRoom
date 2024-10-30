@@ -16,7 +16,7 @@ const handleClick = async () => {
   const tempUUID = generateUUID();
   const link = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LineChannel}&redirect_uri=http://localhost:3000/login&state=${tempUUID}&scope=profile%20openid&prompt=consent&ui_locales=zh-TW&client_secret=${LineSecret}`;
   window.location.href = link;
-}
+};
 
 // const getToken = async () => {
 //   try {
@@ -74,12 +74,12 @@ definePageMeta({
   >
     <div class="w-[200px]">
       <img
-        src="~/assets/image/logo.svg"
+        src="/image/logo.svg"
         alt=""
       >
     </div>
     <h1>歡迎使用 ChatRoom</h1>
-    <!-- <n-avatar round size="medium" :bordered="true" src="~/assets/image/logo.svg" /> -->
+    <!-- <n-avatar round size="medium" :bordered="true" src="/image/logo.svg" /> -->
     <n-button
       color="#06C755"
       size="large"
@@ -89,7 +89,7 @@ definePageMeta({
       <template #icon>
         <div class="">
           <img
-            src="~/assets/icons/line.png"
+            src="/icons/line.png"
             alt=""
           >
         </div>

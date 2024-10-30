@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Send16Filled } from "@vicons/fluent";
+import { Send16Filled } from '@vicons/fluent';
 
+const { $dayjs } = useNuxtApp() as any;
 const route = useRoute();
 
 const roomInfo = {
@@ -11,131 +12,118 @@ const roomInfo = {
 
 const userProfile = {
   name: 'Amelie',
-  account: "ddddd",
+  account: "小華",
   pic: '',
 }
 
-const chatContent = [
-  {
-    id: 1,
-    account: "小明",
-    content: "你今天過得怎麼樣？",
-    isRead: true,
-    createDate: "2024-10-29T10:00:00",
-    expDate: "2024-10-30T10:00:00"
-  },
-  {
-    id: 2,
-    account: "小華",
-    content: "還不錯，你呢？",
-    isRead: true,
-    createDate: "2024-10-29T10:01:00",
-    expDate: "2024-10-30T10:01:00"
-  },
-  {
-    id: 3,
-    account: "小明",
-    content: "最近有什麼新鮮事嗎？",
-    isRead: false,
-    createDate: "2024-10-29T10:02:00",
-    expDate: "2024-10-30T10:02:00"
-  },
-  {
-    id: 4,
-    account: "小華",
-    content: "我最近開始學習吉他了！",
-    isRead: false,
-    createDate: "2024-10-29T10:03:00",
-    expDate: "2024-10-30T10:03:00"
-  },
-  {
-    id: 5,
-    account: "小明",
-    content: "哇，太棒了！你會彈什麼歌？",
-    isRead: true,
-    createDate: "2024-10-29T10:04:00",
-    expDate: "2024-10-30T10:04:00"
-  },
-  {
-    id: 6,
-    account: "小華",
-    content: "我想學《平凡之路》，你覺得呢？",
-    isRead: false,
-    createDate: "2024-10-29T10:05:00",
-    expDate: "2024-10-30T10:05:00"
-  },
-  {
-    id: 7,
-    account: "小明",
-    content: "那首歌很不錯，我也喜歡！",
-    isRead: true,
-    createDate: "2024-10-29T10:06:00",
-    expDate: "2024-10-30T10:06:00"
-  },
-  {
-    id: 8,
-    account: "小華",
-    content: "對了，你有興趣一起練習嗎？",
-    isRead: false,
-    createDate: "2024-10-29T10:07:00",
-    expDate: "2024-10-30T10:07:00"
-  },
-  {
-    id: 9,
-    account: "小明",
-    content: "好啊，我也想要一起進步！",
-    isRead: true,
-    createDate: "2024-10-29T10:08:00",
-    expDate: "2024-10-30T10:08:00"
-  },
-  {
-    id: 10,
-    account: "小華",
-    content: "太好了，我們約個時間吧！",
-    isRead: false,
-    createDate: "2024-10-29T10:09:00",
-    expDate: "2024-10-30T10:09:00"
-  },
-];
+const caller = {
+  name: '小明',
+  account: "小明",
+  pic: "",
+}
+
+const chatWindow = ref(null);
+
+async function scrollToBottom() {
+  await nextTick();
+  console.log(chatWindow.value.scrollHeight)
+  chatWindow.value.scrollTo({
+    top: chatWindow.value.scrollHeight, // 設定滾動高度為視窗的最大高度
+    behavior: 'smooth', // 平滑滾動效果
+  });
+  // chatWindow.scrollTo(0, chatWindow.scrollHeight);
+}
+
+const chatContent = ref([]);
+
+const getChatContent = async () => {
+  const data = await $fetch("/api/getChat", {
+    method: "GET",
+  });
+  chatContent.value = data;
+
+  scrollToBottom()
+}
+
+onMounted(() => {
+  getChatContent()
+});
 </script>
 
 <template>
-  <div class="p-5 min-h-screen md:min-h-fit box-border">
+  <div class="p-5 min-h-screen md:min-h-fit box-border scroll-smooth">
     <div class="bg-black font-bold text-white p-[5px] text-center text-[20px] rounded-[33px]">
       {{ roomInfo.chatRoomName }}
       <span class="text-[12px] text-gray-200">{{ roomInfo.id }}</span>
     </div>
-    <div class="w-full h-[calc(100dvh-33px-5px-10px-3rem)] mt-[10px] bg-white rounded-[33px] grid grid-rows-[30px_auto_100px] p-5">
-      <p class="text-[20px] text-center">
-        {{ userProfile.name }}
-      </p>
+    <div class="w-full h-[calc(100dvh-33px-5px-10px-3rem)] mt-[10px] bg-white rounded-[33px] flex flex-col p-5 divide-y-2">
+      <div class="w-full flex-1 overflow-hidden">
+        <p class="text-[20px] text-left p-2 shadow-[0_0_6px_rgba(0,0,0,0.2)]">
+          {{ userProfile.name }}
+        </p>
 
-      <ul class="h-full overflow-y-auto">
-        <li
-          v-for="msg in chatContent"
-          :key="msg.id"
+        <ul
+          ref="chatWindow"
+          class="scrollbar h-[calc(100%-23px-39px)] overflow-y-auto py-2 flex flex-col gap-10 pr-[1px]"
         >
-          {{ msg.content }}
-        </li>
-      </ul>
+          <li
+            v-for="msg in chatContent"
+            :key="msg.id"
+            class="w-full"
+            :class="msg.account === userProfile.account ? 'self-end' : 'self-start'"
+          >
+            <div
+              class="w-full flex gap-[5px]"
+              :class="msg.account === userProfile.account ? 'justify-end' : ''"
+            >
+              <!-- 大頭貼 -->
+              <div
+                v-if="msg.account !== userProfile.account"
+                class="h-[36px] w-[36px] overflow-hidden rounded-full self-center"
+              >
+                <img
+                  :src="caller.pic ? caller.pic : '/image/defalut_headshot.jpg'"
+                  alt="w-full h-full object-cover"
+                >
+              </div>
+              <!-- 已讀&&時間 -->
+              <div
+                :class="msg.account === userProfile.account ? 'items-end order-first' : 'items-start order-last'"
+                class="self-end flex flex-col text-[10px] gap-[2px]"
+              >
+                <p>{{ msg.isRead ? '已讀' : '' }}</p>
+                <p>{{ $dayjs(msg.createDate).format('MM/DD hh:mm') }}</p>
+              </div>
+              <!-- 訊息 -->
+              <div
+                :class="msg.account === userProfile.account ? 'bg-green-200 max-w-[calc(90%-56px)]' : 'bg-gray-200 max-w-[calc(90%-56px-36px)]'"
+                class="p-[10px_20px] rounded-[30px] overflow-hidden"
+              >
+                {{ msg.content }}
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
 
-      <div class="w-full border-t-2">
+      <div class="">
         <n-input-group class="msg__input h-full flex-col md:flex-row">
           <n-input
             round
             type="textarea"
-            autosize
+            :autosize="{ minRows: 3, maxRows: 5 }"
+            placeholder="請輸入訊息..."
             class="rounded-none h-full"
           />
-          <n-button
-            type="primary"
+          <div
             class="static md:hidden self-end"
           >
             <n-icon
               :component="Send16Filled"
               size="20"
+              class="text-gray-400 hover:text-gray-600 cursor-pointer"
             />
-          </n-button>
+          </div>
         </n-input-group>
       </div>
     </div>
@@ -147,8 +135,38 @@ const chatContent = [
     border: none;
 }
 
+:deep(.msg__input .n-input .n-input-wrapper){
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
 :deep(.msg__input .n-input__state-border){
     border: none !important;
     box-shadow: none !important;
+}
+
+/* scrollbar style */
+
+:deep(.scrollbar::-webkit-scrollbar) {
+    width: 10px;
+}
+
+:deep(.scrollbar::-webkit-scrollbar-track) {
+    background-color: transparent;
+    border-radius: 10px;
+    margin: 10px 50px;
+}
+
+:deep(.scrollbar:hover::-webkit-scrollbar-track) {
+    background-color: #dadada;
+}
+
+:deep(::-webkit-scrollbar-thumb) {
+    background-color: transparent;
+    border-radius: 10px;
+}
+
+:deep(.scrollbar:hover::-webkit-scrollbar-thumb) {
+    background-color: #b3b3b3;
 }
 </style>

@@ -26,7 +26,7 @@ const validatorRoomID = () => {
     return false;
   }
   return true;
-};
+}
 
 const handleClick = async () => {
   if (!validatorRoomID()) {
@@ -82,7 +82,7 @@ onMounted(() => {});
       >
       <img
         v-else
-        src="~/assets/image/defalut_headshot.jpg"
+        src="/image/defalut_headshot.jpg"
         alt=""
         class="w-full h-full object-cover"
       >
