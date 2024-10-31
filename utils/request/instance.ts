@@ -1,6 +1,6 @@
 interface Options {
   method: string
-  data?: Record<string, any>
+  body?: Record<string, any>
   params?: Record<string, any>
 }
 
@@ -22,11 +22,13 @@ export default async function instance<T>(
   const tokenAuth = await useCookie<string | undefined | null>("chatRoom_token");
   const { public: { apiBase } } = useRuntimeConfig(); // 從 runtimeConfig 獲取 API 基礎 URL
 
+  console.log(options);
+  // console.log('reqUrl:', reqUrl, 'options:', options, 'isUnLoad:', isUnLoad, 'header:',header, 'baseUrl:',baseUrl,);
   const { data, pending, error, refresh } = await $fetch<ResponseData<T>>(
     reqUrl, {
       baseURL: baseUrl ?? apiBase, // 使用 nullish 合併運算符
       method: options.method,
-      body: Object.keys(options.data || {}).length ? options.data : null, // 處理空 body
+      body: Object.keys(options.body || {}).length ? options.body : null, // 處理空 body
       params: options.params || {}, // URL 查詢參數
       onRequest({ options }) {
       // 設置請求頭
@@ -42,6 +44,9 @@ export default async function instance<T>(
             options.headers.set("Authorization", `Bearer ${tokenAuth.value}`); // 如果存在 token，則設置 Authorization header
           }
         }
+
+      console.log(options);
+
       },
       onRequestError({ error }) {
       // 處理請求錯誤

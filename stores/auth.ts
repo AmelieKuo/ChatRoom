@@ -23,7 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
         client_id: LineChannel,
       });
 
-      // const { data } = await FETCH_LINE.GetProfile(requestBody, header);
+      const { data } = await FETCH_LINE.GetProfile(requestBody, header);
 
       setUserProfile(data)
     }

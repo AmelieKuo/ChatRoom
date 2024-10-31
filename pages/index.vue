@@ -2,10 +2,9 @@
 import { createDiscreteApi } from "naive-ui";
 import { Key16Filled } from "@vicons/fluent";
 import type { FormValidationStatus } from "naive-ui/es/form/src/interface";
-
-// const { FETCH_AUTH } = useApi();
-
-// import { FETCH_AUTH } from '@/api';
+import { type joinChatRoomRequestBody } from "~~/api/types";
+import type { FormInst, FormItemRule, FormRules } from 'naive-ui'
+const { FETCH_CHAT } = useApi();
 
 const router = useRouter();
 const useModal = createDiscreteApi(["modal"]);
@@ -16,54 +15,45 @@ const { userProfile } = storeToRefs(useAuth);
 
 const loginToken = useCookie("roomToken");
 
-const roomID = ref<string>("");
+const formRef = ref<FormInst | null>(null)
+const formData = ref<joinChatRoomRequestBody>({
+  chatRoomCode: '',
+  chatRoomPassword: '',
+});
 
-const inputStatus = ref<FormValidationStatus | undefined>(undefined);
+ const rules: FormRules = {
+  chatRoomCode: [
+    { required: true, message: "必填" },
+  ],
+  chatRoomPassword: [
+    { required: true, message: "必填" },
+  ],
+};
 
-const validatorRoomID = () => {
-  if (!roomID.value) {
-    inputStatus.value = "error";
-    return false;
-  }
-  return true;
-}
+/** @func 進入聊天室 */ 
+const handleClick = async() => {
+    await formRef.value.validate(async(errors) => {
+        if (!errors) {
+            // 使用 requestBody 代替 formData
+            const { message, success, data } = await FETCH_CHAT.Join(formData.value); 
 
-const handleClick = async () => {
-  if (!validatorRoomID()) {
-    return;
-  }
-  else {
-    const tokenObj = loginToken.value ? JSON.parse(loginToken.value) : {};
-    const { message, success, data } = await $fetch("/api/chatSearch", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${loginToken.value ? tokenObj.accessToken : ""}`,
-      },
-      params: { id: roomID.value },
+            const currentModal = modal.create({
+                title: message,
+                preset: "dialog",
+            });
+
+            if (success) {
+                setTimeout(() => {
+                    currentModal.destroy();
+                    router.push(`/chat/${data}`);
+                }, 3000);
+            } else {
+              console.log('createRoom');
+            }
+        } else {
+            console.log(errors);
+        }
     });
-
-    if (success) {
-      const currentModal = modal.create({
-        title: message,
-        preset: "dialog",
-      });
-      setTimeout(() => {
-        currentModal.destroy();
-        router.push(`/chat/${roomID.value}`);
-      }, 3000);
-    }
-    else {
-      const currentModal = modal.create({
-        title: message,
-        preset: "dialog",
-      });
-
-      setTimeout(() => {
-        currentModal.destroy();
-        router.push(`/chat/${data}`);
-      }, 3000);
-    }
-  }
 };
 
 onMounted(() => {});
@@ -91,22 +81,57 @@ onMounted(() => {});
       Hi! {{ userProfile.name }}
     </p>
 
+    <!-- <div class="w-full"> -->
+      <n-form ref="formRef" :model="formData" :rules="rules" :show-label="false" class="w-full">
+        <n-form-item path="chatRoomCode">
+          <n-input v-model:value="formData.chatRoomCode" placeholder="請輸入房號" type="text" autosize
+            style="width: 100%; min-height: 50px"/>
+        </n-form-item>
+        <n-form-item path="chatRoomPassword" label="密碼">
+          <n-input
+            v-model:value="formData.chatRoomPassword"
+            placeholder="請輸入密碼"
+            type="text"
+            autosize
+            style="width: 100%; min-height: 50px"
+          />
+        </n-form-item>
+     </n-form>
+      <!-- <n-input
+        v-model:value="requestBody.chatRoomCode"
+        :status="inputStatus"
+        placeholder="請輸入房號"
+        type="text"
+        autosize
+        style="width: 100%; min-height: 50px"
+        @input="validatorRoomID"
+      >
+        <template #suffix>
+          <n-icon
+            :component="Key16Filled"
+            size="20"
+          />
+        </template>
+      </n-input>
+    <ValidationTip :validatorError="validatorRoomTip.error" :message="validatorRoomTip.message" />
+    </div>
+
     <n-input
-      v-model:value="roomID"
-      :status="inputStatus"
-      placeholder="請輸入房號"
-      type="text"
-      autosize
-      style="width: 100%; min-height: 50px"
-      @input="validatorRoomID"
-    >
-      <template #suffix>
-        <n-icon
-          :component="Key16Filled"
-          size="20"
-        />
-      </template>
-    </n-input>
+        v-model:value="requestBody.chatRoomPassword"
+        :status="inputStatus"
+        placeholder="請輸入密碼"
+        type="text"
+        autosize
+        style="width: 100%; min-height: 50px"
+        @input="validatorRoomID"
+      >
+        <template #suffix>
+          <n-icon
+            :component="Key16Filled"
+            size="20"
+          />
+        </template>
+      </n-input> -->
 
     <n-button
       type="primary"

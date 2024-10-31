@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import generateUUID from "~/utils/uuid";
 
-// const { FETCH_LINE } = useApi();
+const { FETCH_LINE } = useApi();
 
 const { $dayjs } = useNuxtApp() as any;
 const runtimeConfig = useRuntimeConfig();
@@ -18,48 +18,48 @@ const handleClick = async () => {
   window.location.href = link;
 };
 
-// const getToken = async () => {
-//   try {
-//     const requestBody = new URLSearchParams({
-//       grant_type: "authorization_code",
-//       code: typeof route.query.code === "string" ? route.query.code : "",
-//       client_id: LineChannel,
-//       redirect_uri: "http://localhost:3000/login",
-//       client_secret: LineSecret,
-//     }).toString()
+const getToken = async () => {
+  try {
+    const requestBody = new URLSearchParams({
+      grant_type: "authorization_code",
+      code: typeof route.query.code === "string" ? route.query.code : "",
+      client_id: LineChannel,
+      redirect_uri: "http://localhost:3000/login",
+      client_secret: LineSecret,
+    }).toString()
 
-//     const header = {
-//       "Content-Type": "application/x-www-form-urlencoded"
-//     };
+    const header = {
+      "Content-Type": "application/x-www-form-urlencoded"
+    };
 
-//     const { data: tokenResponse }: { data: any } = await FETCH_LINE.GetToken(requestBody, header);
+    const { data: tokenResponse }: { data: any } = await FETCH_LINE.GetToken(requestBody, header);
 
-//     const obj = {
-//       accessToken: tokenResponse.access_token,
-//       idToken: tokenResponse.id_token,
-//     };
+    const obj = {
+      accessToken: tokenResponse.access_token,
+      idToken: tokenResponse.id_token,
+    };
 
-//     const tempTime = $dayjs().add(23, "hour");
+    const tempTime = $dayjs().add(23, "hour");
 
-//     const maxDate = new Date($dayjs(tempTime).utc().format());
+    const maxDate = new Date($dayjs(tempTime).utc().format());
 
-//     const loginToken = useCookie("roomToken", {
-//       expires: maxDate,
-//     });
+    const loginToken = useCookie("roomToken", {
+      expires: maxDate,
+    });
 
-//     loginToken.value = JSON.stringify(obj);
+    loginToken.value = JSON.stringify(obj);
 
-//     await getProfile(obj.accessToken, obj.idToken);
-//     await router.push("/");
-//   }
-//   catch (error) {
-//     console.log(error);
-//   }
-// };
+    await getProfile(obj.accessToken, obj.idToken);
+    await router.push("/");
+  }
+  catch (error) {
+    console.log(error);
+  }
+};
 
 onMounted(() => {
   if (route.query.code) {
-    // getToken();
+    getToken();
   }
 });
 
