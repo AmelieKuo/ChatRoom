@@ -13,7 +13,7 @@ export const useAuthStore = defineStore("auth", () => {
   };
 
   const removeLoading = (loadingId: string) => {
-    loadingArr.value = loadingArr.value.filter(id => id !== loadingId);
+    loadingArr.value = loadingArr.value.filter(d => id !== loadingId);
   };
 
 
