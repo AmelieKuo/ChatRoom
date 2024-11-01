@@ -1,6 +1,7 @@
-import { request } from '~/utils/request/request'
+import { request } from "~/utils/request/createRequest";
 
 export const FETCH_AUTH = {
-  Login: (data: any, isUnLoad: boolean) => request.post('/login', data, isUnLoad),
-  Test: (params: any, isUnLoad: boolean) => request.get('/users', params, isUnLoad),
-}
+  Login: (data: any, isUnLoad: boolean) => request.post("/Login", data, isUnLoad),
+  RefreshToken: (data: any, isUnLoad: boolean) => request.post("/RefreshToken", data, isUnLoad),
+  Logout: (data: any, isUnLoad: boolean) => request.post("/Logout", data, isUnLoad),
+};

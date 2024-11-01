@@ -1,6 +1,7 @@
-import { request } from '~/utils/request/request'
+import { request } from "~/utils/request/createRequest";
 
 export const FETCH_CHAT = {
-  Join: (data: any, isUnLoad: boolean = true) => request.post('/JoinChatRoom', data, isUnLoad),
-  Create: (data: any, isUnLoad: boolean = true) => request.get('/CreateChatRoom', data, isUnLoad),
-}
+  Join: (data: any, isUnLoad: boolean = true) => request.post("/JoinChatRoom", data, isUnLoad),
+  Create: (data: any, isUnLoad: boolean = true) => request.post("/CreateChatRoom", data, isUnLoad),
+  RemoveChatRoom: (data: any, isUnLoad: boolean = true) => request.delete("/RemoveChatRoom", data, isUnLoad),
+};

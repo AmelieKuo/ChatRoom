@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import { createDiscreteApi } from "naive-ui";
-import { Key16Filled } from "@vicons/fluent";
-import type { FormValidationStatus } from "naive-ui/es/form/src/interface";
-import { type joinChatRoomRequestBody } from "~~/api/types";
-import type { FormInst, FormItemRule, FormRules } from 'naive-ui'
+import type { joinChatRoomRequestBody } from "~~/api/types";
+import type { FormInst, FormRules } from "naive-ui";
 const { FETCH_CHAT } = useApi();
 
 const router = useRouter();
@@ -15,10 +13,10 @@ const { userProfile } = storeToRefs(useAuth);
 
 const loginToken = useCookie("roomToken");
 
-const formRef = ref<FormInst | null>(null)
+const formRef = ref<FormInst | null>(null);
 const formData = ref<joinChatRoomRequestBody>({
-  chatRoomCode: '',
-  chatRoomPassword: '',
+  chatRoomCode: "",
+  chatRoomPassword: "",
 });
 
  const rules: FormRules = {
@@ -34,7 +32,8 @@ const formData = ref<joinChatRoomRequestBody>({
 const handleClick = async() => {
     await formRef.value.validate(async(errors) => {
         if (!errors) {
-            // 使用 requestBody 代替 formData
+            console.log(formData.value);
+
             const { message, success, data } = await FETCH_CHAT.Join(formData.value); 
 
             const currentModal = modal.create({
@@ -48,7 +47,7 @@ const handleClick = async() => {
                     router.push(`/chat/${data}`);
                 }, 3000);
             } else {
-              console.log('createRoom');
+              console.log("createRoom");
             }
         } else {
             console.log(errors);
@@ -81,13 +80,16 @@ onMounted(() => {});
       Hi! {{ userProfile.name }}
     </p>
 
-    <!-- <div class="w-full"> -->
       <n-form ref="formRef" :model="formData" :rules="rules" :show-label="false" class="w-full">
         <n-form-item path="chatRoomCode">
-          <n-input v-model:value="formData.chatRoomCode" placeholder="請輸入房號" type="text" autosize
+          <n-input
+            v-model:value="formData.chatRoomCode"
+            placeholder="請輸入房號"
+            type="text"
+            autosize
             style="width: 100%; min-height: 50px"/>
         </n-form-item>
-        <n-form-item path="chatRoomPassword" label="密碼">
+        <n-form-item path="chatRoomPassword">
           <n-input
             v-model:value="formData.chatRoomPassword"
             placeholder="請輸入密碼"

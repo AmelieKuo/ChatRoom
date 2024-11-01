@@ -1,7 +1,13 @@
+import { createDiscreteApi } from "naive-ui";
+const useModal = createDiscreteApi(["modal"]);
+const { modal: alert } = useModal;
+
 interface Options {
-  method: string
-  body?: Record<string, any>
-  params?: Record<string, any>
+  method: string,
+  body?: Record<string, any>,
+  params?: Record<string, any>,
+  headers?: Record<string, any>,
+  baseURL?: string,
 }
 
 interface ResponseData<T> {
@@ -15,55 +21,72 @@ export default async function instance<T>(
   reqUrl: string,
   options: Options,
   isUnLoad: boolean,
-  header?: Record<string, string>,
-  baseUrl?: string,
 ): Promise<ResponseData<T>> {
+  const useAuth = useAuthStore();
+  const { globalLoginOut } = useAuth;
+
   // 獲取 token
   const tokenAuth = await useCookie<string | undefined | null>("chatRoom_token");
   const { public: { apiBase } } = useRuntimeConfig(); // 從 runtimeConfig 獲取 API 基礎 URL
 
+  const hasOtherAuth = options.headers?.Authorization !== null;
+
   console.log(options);
-  // console.log('reqUrl:', reqUrl, 'options:', options, 'isUnLoad:', isUnLoad, 'header:',header, 'baseUrl:',baseUrl,);
-  const { data, pending, error, refresh } = await $fetch<ResponseData<T>>(
+
+  const response = await $fetch<ResponseData<T>>(
     reqUrl, {
-      baseURL: baseUrl ?? apiBase, // 使用 nullish 合併運算符
       method: options.method,
+      baseURL: options.baseURL ?? apiBase,
+      headers: options.headers ?? { "Content-Type": "application/json" },
       body: Object.keys(options.body || {}).length ? options.body : null, // 處理空 body
       params: options.params || {}, // URL 查詢參數
       onRequest({ options }) {
-      // 設置請求頭
-        if (header) {
-          Object.entries(header).forEach(([key, value]) => {
-            options.headers.set(key, value);
-          })
-        }
-        else {
-          options.headers.set("Content-Type", "application/json"); // 默認為 JSON 請求
 
-          if (tokenAuth.value) {
-            options.headers.set("Authorization", `Bearer ${tokenAuth.value}`); // 如果存在 token，則設置 Authorization header
-          }
-        }
-
-      console.log(options);
+      // 設置 Authorization header
+      if (!hasOtherAuth && tokenAuth.value) {
+        options.headers.set("Authorization", `Bearer ${tokenAuth.value}`);
+      }
 
       },
       onRequestError({ error }) {
+        console.log(111);
+        const { url, status, _data } = error;
+        
+        /** Line OAuth2.0 錯誤 */
+        if (url.includes("api.line.me")) {
+          if (_data.error_description === "invalid_request") {
+              globalLoginOut();
+            }
+        }
       // 處理請求錯誤
         console.error("Request Error:", error);
         return error; // 返回錯誤
       },
       onResponse({ response }) {
-      // 返回解析後的數據
         return response._data;
       },
       onResponseError({ response }) {
-      // 處理響應錯誤
+        const { url, status, _data } = response;
+
+        /** Line OAuth2.0 錯誤 */
+        if (url.includes("api.line.me")) {
+          if (_data.error === "invalid_request") {
+            globalLoginOut();
+          }
+        }
+
+        const currentModal = alert.create({
+          title: "請重新登入",
+          preset: "dialog",
+        });
+
+        currentModal.destroy();
+
         console.error("Response Error:", response);
         return response; // 返回錯誤響應
       },
     },
-  )
+  );
 
-  return { data, pending, error, refresh }; // 返回結果
+  return response; // 返回結果
 }

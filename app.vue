@@ -1,14 +1,14 @@
 <script setup lang="ts">
-const useAuth = useAuthStore()
-const { userProfile } = storeToRefs(useAuth)
-const { getProfile } = useAuth
-const loginToken = useCookie('roomToken') as any
+// const useAuth = useAuthStore();
+// const { userProfile } = storeToRefs(useAuth)
+// const { getProfile } = useAuth
+// const loginToken = useCookie('roomToken') as any
 
 onMounted(async () => {
-  if (loginToken.value && userProfile.value.name === undefined) {
-    await getProfile(loginToken.value.accessToken, loginToken.value.idToken)
-  }
-})
+  // if (loginToken.value && userProfile.value.name === undefined) {
+  //   await getProfile(loginToken.value.accessToken, loginToken.value.idToken)
+  // }
+});
 </script>
 
 <template>
