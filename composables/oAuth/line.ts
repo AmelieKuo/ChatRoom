@@ -4,10 +4,9 @@ import { useAuthStore } from "~/stores/auth";
 /** Line OAuth 功能 */
 export const useLine = () => {
   const { FETCH_LINE } = useApi();
-  const { $dayjs } = useNuxtApp();
   const runtimeConfig = useRuntimeConfig();
   const { LineChannel, LineSecret } = runtimeConfig.public;
-  const { setUserProfile } = useAuthStore();
+  const { globalLogin } = useAuthStore();
   const router = useRouter();
   const route = useRoute();
 
@@ -35,7 +34,12 @@ export const useLine = () => {
 
       const response = await FETCH_LINE.GetProfile(requestBody, headers);
       if (response) {
-        setUserProfile(response);
+        const accountInfo = {
+          account: response.sub,
+          name: response.name,
+          pic: response.picture,
+        };
+        globalLogin(accountInfo);
       }
 
       await router.push("/");
@@ -61,12 +65,6 @@ export const useLine = () => {
 
       if (tokenResponse?.access_token && tokenResponse?.id_token) {
         const { access_token, id_token } = tokenResponse;
-        const tempTime = $dayjs().add(23, "hour").utc().format();
-        const maxDate = new Date(tempTime);
-
-        const loginToken = useCookie("roomToken", { expires: maxDate });
-        loginToken.value = JSON.stringify({ accessToken: access_token, idToken: id_token });
-
         await getLineProfile(access_token, id_token);
       }
     } catch (error) {

@@ -31,13 +31,11 @@ export default async function instance<T>(
 
   const hasOtherAuth = options.headers?.Authorization !== null;
 
-  console.log(options);
-
   const response = await $fetch<ResponseData<T>>(
     reqUrl, {
       method: options.method,
       baseURL: options.baseURL ?? apiBase,
-      headers: options.headers ?? { "Content-Type": "application/json" },
+      headers: options.headers ?? { "accept": "*/*", "Content-Type": "application/json" },
       body: Object.keys(options.body || {}).length ? options.body : null, // 處理空 body
       params: options.params || {}, // URL 查詢參數
       onRequest({ options }) {
@@ -63,7 +61,7 @@ export default async function instance<T>(
         return error; // 返回錯誤
       },
       onResponse({ response }) {
-        return response._data;
+        return response;
       },
       onResponseError({ response }) {
         const { url, status, _data } = response;

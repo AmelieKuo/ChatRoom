@@ -39,12 +39,23 @@ export default defineNuxtConfig({
       LineSecret: process.env.NUXT_LINE_CHANNEL_SECRET,
     },
   },
+  // devProxy: {
+  //     '/api':{
+  //       target: process.env.NUXT_BASE_URL,
+  //       changeOrigin: true
+  //     }
+  // },
   vite: {
     server: {
-      proxy: process.env.NODE_ENV !== 'Dev' ? {} : {
-        '/api/': {
-          target: process.env.NUXT_BASE_API, // 設置預設值
+      proxy: {
+        '/api': {
+          target: 'http://172.26.36.181:8087', // 設置預設值
           changeOrigin: true,
+        },
+        '/service/api': {
+          target: 'https://ttgouat.cbsdinfo.com.tw', // 設置預設值
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/service\/api/, '/service/api'),
         },
       },
     },
