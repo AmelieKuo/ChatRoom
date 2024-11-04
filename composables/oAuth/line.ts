@@ -63,6 +63,8 @@ export const useLine = () => {
       const headers = { "Content-Type": "application/x-www-form-urlencoded" };
       const tokenResponse = await FETCH_LINE.GetToken(requestBody, headers);
 
+      console.log(tokenResponse);
+
       if (tokenResponse?.access_token && tokenResponse?.id_token) {
         const { access_token, id_token } = tokenResponse;
         await getLineProfile(access_token, id_token);

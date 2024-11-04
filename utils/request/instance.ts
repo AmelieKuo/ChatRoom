@@ -27,23 +27,25 @@ export default async function instance<T>(
 
   // 獲取 token
   const tokenAuth = await useCookie<string | undefined | null>("chatRoom_token");
-  const { public: { apiBase } } = useRuntimeConfig(); // 從 runtimeConfig 獲取 API 基礎 URL
+  const { public: { mode, baseUrl, apiPattern } } = useRuntimeConfig(); // 從 runtimeConfig 獲取 API 基礎 URL
 
   const hasOtherAuth = options.headers?.Authorization !== null;
 
   const response = await $fetch<ResponseData<T>>(
     reqUrl, {
       method: options.method,
-      baseURL: options.baseURL ?? apiBase,
+      baseURL: options.baseURL ?? (mode === "development" ? apiPattern : `${baseUrl}${apiPattern}`),
       headers: options.headers ?? { "accept": "*/*", "Content-Type": "application/json" },
       body: Object.keys(options.body || {}).length ? options.body : null, // 處理空 body
       params: options.params || {}, // URL 查詢參數
       onRequest({ options }) {
 
-      // 設置 Authorization header
-      if (!hasOtherAuth && tokenAuth.value) {
-        options.headers.set("Authorization", `Bearer ${tokenAuth.value}`);
-      }
+        // 設置 Authorization header
+        if (!hasOtherAuth && tokenAuth.value) {
+          options.headers.set("Authorization", `Bearer ${tokenAuth.value}`);
+        }
+
+        console.log(options);
 
       },
       onRequestError({ error }) {

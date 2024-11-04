@@ -1,20 +1,11 @@
 <script setup lang="ts">
 const route = useRoute();
 const { lineLogin, getLineToken } = useLine();
-
+const { googleLogin } = useGoogle();
 
 const handleClick = () => {
   console.log("click");
 };
-
-const goTTGO = async() => {
-  const resp = useFetch('/Banner/GetAll',{
-    baseURL: "https://ttgouat.cbsdinfo.com.tw/service/api/",
-    method: 'GET',
-  });
-
-  console.log(resp);
-}
 
 onMounted(() => {
   /** 使用 Line 登入*/ 
@@ -39,22 +30,6 @@ definePageMeta({
       >
     </div>
     <h1 class="text-[25px]">歡迎使用 ChatRoom</h1>
-    <n-button
-      color="#06C755"
-      size="large"
-      class="mt-[10px] font-bold w-[230px]"
-      @click="goTTGO"
-    >
-      <template #icon>
-        <div class="">
-          <img
-            src="/icons/line.png"
-            alt=""
-          >
-        </div>
-      </template>
-      TTGO
-    </n-button>
     <!-- Line -->
     <n-button
       color="#06C755"
@@ -74,15 +49,17 @@ definePageMeta({
     </n-button>
     <!-- Google -->
     <n-button
-      color="#06C755"
+      color="#e5e7eb"
+      ghost
       size="large"
+      text-color="black"
       class="mt-[10px] font-bold w-[230px]"
-      @click="handleClick"
+      @click="googleLogin"
     >
       <template #icon>
         <div class="">
           <img
-            src="/icons/line.png"
+            src="/icons/google.png"
             alt=""
           >
         </div>

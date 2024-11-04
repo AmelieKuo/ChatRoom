@@ -1,74 +1,82 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
+import AutoImport from "unplugin-auto-import/vite";
+import Components from "unplugin-vue-components/vite";
+import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 
 export default defineNuxtConfig({
   // 在配置對象之外使用 console.log 而不是在回調函數內
-  modules: ['nuxtjs-naive-ui', '@nuxtjs/tailwindcss', '@nuxt/eslint', '@pinia/nuxt'],
+  modules: ["nuxtjs-naive-ui", "@nuxtjs/tailwindcss", "@nuxt/eslint", "@pinia/nuxt"],
 
   imports: {
-    dirs: ['stores'], // 預設有 composables 和 utils
+    dirs: ["stores"], // 預設有 composables 和 utils
   },
 
   devtools: { enabled: true },
   app: {
     head: {
-      title: process.env.NUXT_APP_TITLE || 'Default Title',
+      title: process.env.NUXT_APP_TITLE || "Default Title",
       meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no' },
+        { name: "viewport", content: "width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" },
       ],
       link: [],
     },
     pageTransition: {
-      name: 'fade', mode: 'out-in',
+      name: "fade", mode: "out-in",
     },
     layoutTransition: {
-      name: 'layout', mode: 'out-in',
+      name: "layout", mode: "out-in",
     },
   },
-
-  css: ['~/assets/css/normalize.css', '~/assets/css/main.css'],
+  css: ["~/assets/css/normalize.css", "~/assets/css/main.css"],
 
   runtimeConfig: {
     public: {
-      apiBase: `${process.env.NUXT_BASE_URL}${process.env.NUXT_BASE_API}`,
+      mode: process.env.NODE_ENV,
+      baseUrl: process.env.NUXT_BASE_URL,
+      apiPattern: process.env.NUXT_BASE_API,
       APP_TITLE: process.env.NUXT_TITLE,
       imgUrl: process.env.NUXT_IMG_URL,
       LineChannel: process.env.NUXT_LINE_CHANNEL_ID,
       LineSecret: process.env.NUXT_LINE_CHANNEL_SECRET,
+      GoogleClientId: process.env.NUXT_GOOGLE_CLIENTID,
     },
   },
-  // devProxy: {
-  //     '/api':{
-  //       target: process.env.NUXT_BASE_URL,
-  //       changeOrigin: true
-  //     }
-  // },
+  nitro: {
+    // devProxy: {
+    //   "/VsWeb/api": {
+    //     target: "https://www.vscinemas.com.tw/",
+    //     changeOrigin: true,
+    //   },
+    // },
+    // routeRules: {
+    //   "/ttgo/**": {
+    //     proxy: "https://www.server-example.com",
+    //   }
+    // }
+  },
+  ssr: false,
   vite: {
     server: {
       proxy: {
-        '/api': {
-          target: 'http://172.26.36.181:8087', // 設置預設值
-          changeOrigin: true,
-        },
-        '/service/api': {
-          target: 'https://ttgouat.cbsdinfo.com.tw', // 設置預設值
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/service\/api/, '/service/api'),
-        },
-      },
+        proxy: process.env.NODE_ENV !== "development" ? {} : {
+          "/api": {
+            target: process.env.NUXT_BASE_URL,
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/api/, ""),
+          },
+        }
+      }
     },
     plugins: [
       AutoImport({
         imports: [
           {
-            'naive-ui': [
-              'useButton',
-              'useDialog',
-              'useMessage',
-              'useNotification',
-              'useLoadingBar',
+            "naive-ui": [
+              "useButton",
+              "useDialog",
+              "useMessage",
+              "useNotification",
+              "useLoadingBar",
             ],
           },
         ],
@@ -90,10 +98,11 @@ export default defineNuxtConfig({
   },
   hooks: {
     ready: () => {
-      console.log('====================模式與環境====================');
-      console.log('WebTitle', process.env.NUXT_TITLE)
-      console.log('apiBase', `${process.env.NUXT_BASE_URL}${process.env.NUXT_BASE_API}`)
-      console.log('=================================================');
+      console.log("====================模式與環境====================");
+      console.log("WebTitle", process.env.NUXT_TITLE);
+      console.log("Mode", process.env.NODE_ENV);
+      console.log("apiBase", `${process.env.NUXT_BASE_URL}${process.env.NUXT_BASE_API}`);
+      console.log("=================================================");
     },
   },
   // eslint: {
@@ -104,4 +113,4 @@ export default defineNuxtConfig({
   //     stylistic: true,
   //   },
   // },
-})
+});
