@@ -57,14 +57,12 @@ export default defineNuxtConfig({
   ssr: false,
   vite: {
     server: {
-      proxy: {
         proxy: process.env.NODE_ENV !== "development" ? {} : {
           "/api": {
             target: process.env.NUXT_BASE_URL,
             changeOrigin: true,
-            rewrite: (path) => path.replace(/^\/api/, ""),
+            secure: false,
           },
-        }
       }
     },
     plugins: [
