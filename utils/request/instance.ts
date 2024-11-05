@@ -34,7 +34,7 @@ export default async function instance<T>(
   const response = await $fetch<ResponseData<T>>(
     reqUrl, {
       method: options.method,
-      baseURL: options.baseURL ?? (mode === "development" ? apiPattern : `${baseUrl}${apiPattern}`),
+      baseURL: options.baseURL ?? (mode === "development" ? "/chatRoom/api/" : `${baseUrl}${apiPattern}`),
       headers: options.headers ?? { "accept": "*/*", "Content-Type": "application/json" },
       body: Object.keys(options.body || {}).length ? options.body : null, // 處理空 body
       params: options.params || {}, // URL 查詢參數
@@ -45,11 +45,8 @@ export default async function instance<T>(
           options.headers.set("Authorization", `Bearer ${tokenAuth.value}`);
         }
 
-        console.log(options);
-
       },
       onRequestError({ error }) {
-        console.log(111);
         const { url, status, _data } = error;
         
         /** Line OAuth2.0 錯誤 */
@@ -66,11 +63,17 @@ export default async function instance<T>(
         return response;
       },
       onResponseError({ response }) {
-        const { url, status, _data } = response;
+        const { url, status, _data:data } = response;
 
         /** Line OAuth2.0 錯誤 */
         if (url.includes("api.line.me")) {
-          if (_data.error === "invalid_request") {
+          if (data.error === "invalid_request") {
+            globalLoginOut();
+          }
+        }
+
+        if (url.includes("github")) {
+          if (data.status === "401") {
             globalLoginOut();
           }
         }

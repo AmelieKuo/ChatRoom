@@ -1,18 +1,11 @@
 <script setup lang="ts">
-const route = useRoute();
-const { lineLogin, getLineToken } = useLine();
+const { lineLogin } = useLine();
 const { googleLogin } = useGoogle();
+const { githubLogin } = useGithub();
 
 const handleClick = () => {
   console.log("click");
 };
-
-onMounted(() => {
-  /** 使用 Line 登入*/ 
-  if (route.query.code) {
-    getLineToken();
-  }
-});
 
 definePageMeta({
   middleware: ["non-login"],
@@ -45,7 +38,7 @@ definePageMeta({
           >
         </div>
       </template>
-      使用 Line 帳號登入
+      使用 Line 登入
     </n-button>
     <!-- Google -->
     <n-button
@@ -64,11 +57,11 @@ definePageMeta({
           >
         </div>
       </template>
-      使用 Google 帳號登入
+      使用 Google 登入
     </n-button>
     <!-- Facebook -->
     <n-button
-      color="#06C755"
+      color="#1A77F2"
       size="large"
       class="mt-[10px] font-bold w-[230px]"
       @click="handleClick"
@@ -76,29 +69,29 @@ definePageMeta({
       <template #icon>
         <div class="">
           <img
-            src="/icons/line.png"
+            src="/icons/facebook.png"
             alt=""
           >
         </div>
       </template>
-      使用 Facebook 帳號登入
+      使用 Facebook 登入
     </n-button>
-    <!-- Microsoft -->
+    <!-- Github -->
     <n-button
-      color="#06C755"
+      color="#24292f"
       size="large"
       class="mt-[10px] font-bold w-[230px]"
-      @click="handleClick"
+      @click="githubLogin"
     >
       <template #icon>
         <div class="">
           <img
-            src="/icons/line.png"
+            src="/icons/github.png"
             alt=""
           >
         </div>
       </template>
-      使用 Microsoft 帳號登入
+      使用 Github 帳號登入
     </n-button>
   </section>
 </template>

@@ -25,7 +25,7 @@ export const useAuthStore = defineStore("auth", () => {
       password: "",
       name: userProfile.name,
       pic: userProfile.pic,
-    }
+    };
 
     const response = await FETCH_AUTH.Login(requestBody);
 
@@ -35,9 +35,9 @@ export const useAuthStore = defineStore("auth", () => {
       account: response.account,
       name: response.name,
       pic: response.pic,
-    }
+    };
 
-    setUserProfile(profile)
+    setUserProfile(profile);
 
     // const tempTime = $dayjs().add(23, "hour");
     // const maxDate = new Date($dayjs(tempTime).utc().format());
@@ -55,7 +55,7 @@ export const useAuthStore = defineStore("auth", () => {
     const token = useCookie("roomToken") as any;
     token.value = null;
 
-    router.push({ name: "login" });
+    router.push("/login");
   };
 
   /** 會員資料 */ 

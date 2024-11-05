@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 
-export const useAuthStore = defineStore("auth", () => {
+export const useLoadingStore = defineStore("auth", () => {
 
   const loadingArr = ref<Array<any>>([]);
 

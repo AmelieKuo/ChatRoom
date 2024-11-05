@@ -1,0 +1,10 @@
+import { request } from "~/utils/request/createRequest";
+
+export const FETCH_GITHUB = {
+  GetProfile: (params: any, headers?: any, githubUrl:any, isUnLoad: boolean = true) =>
+    request.get("/user",
+      params,
+      githubUrl,
+      headers,
+      isUnLoad),
+};

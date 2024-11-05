@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   app: {
     head: {
-      title: process.env.NUXT_APP_TITLE || "Default Title",
+      title: process.env.NUXT_TITLE || "Default Title",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" },
       ],
@@ -39,6 +39,8 @@ export default defineNuxtConfig({
       LineChannel: process.env.NUXT_LINE_CHANNEL_ID,
       LineSecret: process.env.NUXT_LINE_CHANNEL_SECRET,
       GoogleClientId: process.env.NUXT_GOOGLE_CLIENTID,
+      GithubClientId: process.env.NUXT_GITHUB_CLIENTID,
+      GithubSecret: process.env.NUXT_GITHUB_SECRET,
     },
   },
   nitro: {
@@ -58,10 +60,11 @@ export default defineNuxtConfig({
   vite: {
     server: {
         proxy: process.env.NODE_ENV !== "development" ? {} : {
-          "/api": {
-            target: process.env.NUXT_BASE_URL,
+          "/chatRoom/api": {
+            target: `${process.env.NUXT_BASE_URL}/api`,
             changeOrigin: true,
             secure: false,
+            rewrite: (path) => path.replace(/^\/chatRoom\/api/, "/api"),
           },
       }
     },

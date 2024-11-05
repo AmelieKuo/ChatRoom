@@ -1,5 +1,4 @@
 import generateUUID from "~/utils/uuid";
-import { useAuthStore } from "~/stores/auth";
 
 /** Line OAuth 功能 */
 export const useLine = () => {
@@ -13,7 +12,7 @@ export const useLine = () => {
   /** @func Line登入 */
   const lineLogin = () => {
     const tempUUID = generateUUID();
-    const redirectURI = encodeURIComponent("http://localhost:3000/login");
+    const redirectURI = "http://localhost:3000/redirect/line";
     const scope = "profile openid";
     const link = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LineChannel}&redirect_uri=${redirectURI}&state=${tempUUID}&scope=${scope}&prompt=consent&ui_locales=zh-TW&client_secret=${LineSecret}`;
     window.location.href = link;
@@ -56,14 +55,12 @@ export const useLine = () => {
         grant_type: "authorization_code",
         code,
         client_id: LineChannel,
-        redirect_uri: "http://localhost:3000/login",
+        redirect_uri: "http://localhost:3000/redirect/line",
         client_secret: LineSecret,
       }).toString();
 
       const headers = { "Content-Type": "application/x-www-form-urlencoded" };
       const tokenResponse = await FETCH_LINE.GetToken(requestBody, headers);
-
-      console.log(tokenResponse);
 
       if (tokenResponse?.access_token && tokenResponse?.id_token) {
         const { access_token, id_token } = tokenResponse;
