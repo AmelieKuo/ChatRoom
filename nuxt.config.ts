@@ -43,19 +43,6 @@ export default defineNuxtConfig({
       GithubSecret: process.env.NUXT_GITHUB_SECRET,
     },
   },
-  nitro: {
-    // devProxy: {
-    //   "/VsWeb/api": {
-    //     target: "https://www.vscinemas.com.tw/",
-    //     changeOrigin: true,
-    //   },
-    // },
-    // routeRules: {
-    //   "/ttgo/**": {
-    //     proxy: "https://www.server-example.com",
-    //   }
-    // }
-  },
   ssr: false,
   vite: {
     server: {
@@ -88,9 +75,9 @@ export default defineNuxtConfig({
     ],
 
   },
-  // typescript: {
-  //   typeCheck: true,
-  // },
+  typescript: {
+    typeCheck: true,
+  },
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -108,7 +95,7 @@ export default defineNuxtConfig({
   },
   // eslint: {
   //   checker: {
-  //     configType: 'eslintrc',
+  //     configType: "eslintrc",
   //   },
   //   config: {
   //     stylistic: true,

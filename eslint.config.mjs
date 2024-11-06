@@ -2,10 +2,13 @@ import pluginVue from 'eslint-plugin-vue'
 import pluginJs from '@eslint/js'
 import stylistic from '@stylistic/eslint-plugin'
 import withNuxt from './.nuxt/eslint.config.mjs'
+import eslintRule from './public/eslintRule.js'
+import nuxtRule from '@nuxt/eslint-config'
 
 export default withNuxt(
   {
-    // ...pluginVue.configs['flat/recommended'],
+    ...nuxtRule.configs['flat/recommended'],
+    ...eslintRule.configs['flat/recommended'],
     files: ['**/*.{js,ts,vue}'],
     languageOptions: {
       globals: {
