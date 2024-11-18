@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
 
 export const useAuthStore = defineStore("auth", () => {
-  const { FETCH_AUTH } = useApi();
-  const router = useRouter();
-  const { $dayjs } = useNuxtApp();
+  const { $api, $dayjs } = useNuxtApp() as any;
+  const { FETCH_AUTH } = $api();
 
+  const router = useRouter();
   interface loginRequest {
     loginType: number; // 1: 一般登入, 2: 第三方登入
     account: string;

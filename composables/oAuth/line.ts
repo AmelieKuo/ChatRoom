@@ -2,10 +2,11 @@ import generateUUID from "~/utils/uuid";
 
 /** Line OAuth 功能 */
 export const useLine = () => {
-  const { FETCH_LINE } = useApi();
+  const { $api } = useNuxtApp() as any;
+  const { FETCH_LINE } = $api();
   const runtimeConfig = useRuntimeConfig();
   const { LineChannel, LineSecret } = runtimeConfig.public;
-  const { globalLogin } = useAuthStore();
+  const { globalLogin, globalLoginOut } = useAuthStore();
   const router = useRouter();
   const route = useRoute();
 
@@ -71,5 +72,21 @@ export const useLine = () => {
     }
   };
 
-  return { lineLogin, getLineToken, getLineProfile };
+  const handleError = (error: any) => {
+    const { url, _data = null, message } = error;
+    const { error_description } = _data ? _data : null;
+    
+    /** Line OAuth2.0 錯誤 */
+    if (url.includes("api.line.me") && error_description === "invalid_request") {
+      globalLoginOut();
+    }
+
+    return {
+      error,
+      data: null,
+      msg: message
+    };
+  }
+
+  return { lineLogin, getLineToken, getLineProfile, handleError };
 };

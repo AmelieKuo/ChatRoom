@@ -1,4 +1,4 @@
-import { request } from "~/utils/request/createRequest";
+import { request } from "~/services/request/createRequest";
 
 export const FETCH_GITHUB = {
   GetProfile: (params: any, headers?: any, githubUrl:any, isUnLoad: boolean = true) =>

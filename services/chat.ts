@@ -1,4 +1,4 @@
-import { request } from "~/utils/request/createRequest";
+import { request } from "~/services/request/createRequest";
 
 export const FETCH_CHAT = {
   Join: (data: any, isUnLoad: boolean = true) => request.post("/JoinChatRoom", data, isUnLoad),

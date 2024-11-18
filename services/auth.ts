@@ -1,4 +1,4 @@
-import { request } from "~/utils/request/createRequest";
+import { request } from "~/services/request/createRequest";
 
 export const FETCH_AUTH = {
   Login: (data: any, isUnLoad: boolean) => request.post("/Login", data, isUnLoad),

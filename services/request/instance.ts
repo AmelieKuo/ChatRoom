@@ -1,4 +1,7 @@
 import { createDiscreteApi } from "naive-ui";
+import generateUUID from "~/utils/uuid";
+import handleServiceResult from "~/utils/result";
+
 const useModal = createDiscreteApi(["modal"]);
 const { modal: alert } = useModal;
 
@@ -8,6 +11,7 @@ interface Options {
   params?: Record<string, any>,
   headers?: Record<string, any>,
   baseURL?: string,
+  error?: (error: any) => void,
 }
 
 interface ResponseData<T> {
@@ -30,66 +34,68 @@ export default async function instance<T>(
   const { public: { mode, baseUrl, apiPattern } } = useRuntimeConfig(); // 從 runtimeConfig 獲取 API 基礎 URL
 
   const hasOtherAuth = options.headers?.Authorization !== null;
+  const handle3PApiError = options.error;
 
-  const response = await $fetch<ResponseData<T>>(
-    reqUrl, {
+  const { data, status, error, response } = await $fetch<ResponseData<T>>(
+    reqUrl,
+    {
       method: options.method,
       baseURL: options.baseURL ?? (mode === "development" ? "/chatRoom/api/" : `${baseUrl}${apiPattern}`),
       headers: options.headers ?? { "accept": "*/*", "Content-Type": "application/json" },
       body: Object.keys(options.body || {}).length ? options.body : null, // 處理空 body
       params: options.params || {}, // URL 查詢參數
       onRequest({ options }) {
-
         // 設置 Authorization header
         if (!hasOtherAuth && tokenAuth.value) {
           options.headers.set("Authorization", `Bearer ${tokenAuth.value}`);
         }
-
       },
       onRequestError({ error }) {
         const { url, status, _data } = error;
-        
+
         /** Line OAuth2.0 錯誤 */
-        if (url.includes("api.line.me")) {
-          if (_data.error_description === "invalid_request") {
-              globalLoginOut();
-            }
+        if (url.includes("api.line.me") && _data?.error_description === "invalid_request") {
+          globalLoginOut();
         }
-      // 處理請求錯誤
-        console.error("Request Error:", error);
-        return error; // 返回錯誤
+
+        return handleServiceResult(error, null);
       },
       onResponse({ response }) {
-        return response;
+
+        if (options.baseURL){
+          return response;
+        }else{
+          const { resultCode, message, data } = response as any;
+  
+          /** 01: 失敗、10: 成功 */ 
+          if (resultCode === '01') {
+            const error = true
+            return handleServiceResult(error, message, data);
+          }else{
+            return handleServiceResult(null, message, data);
+          }
+        }
+
       },
       onResponseError({ response }) {
-        const { url, status, _data:data } = response;
+        const { error:apiError } = response as any;
 
-        /** Line OAuth2.0 錯誤 */
-        if (url.includes("api.line.me")) {
-          if (data.error === "invalid_request") {
-            globalLoginOut();
-          }
+        if (options.error){
+          const error = handle3PApiError(apiError);
+
+          return error
+        }else{
+          return handleServiceResult(error, error.message);
         }
-
-        if (url.includes("github")) {
-          if (data.status === "401") {
-            globalLoginOut();
-          }
-        }
-
-        const currentModal = alert.create({
-          title: "請重新登入",
-          preset: "dialog",
-        });
-
-        currentModal.destroy();
-
-        console.error("Response Error:", response);
-        return response; // 返回錯誤響應
       },
-    },
+    }
   );
 
-  return response; // 返回結果
+  // 返回結果
+  return {
+    data,
+    pending: status === "pending",
+    error: error || response?.error,
+    refresh: () => { }, // 根據需要定義 refresh 逻辑
+  };
 }

@@ -1,5 +1,5 @@
 import generateUUID from "~/utils/uuid";
-import { c, createDiscreteApi } from "naive-ui";
+import { createDiscreteApi } from "naive-ui";
 
 /** Github OAuth 功能 */
 export const useGithub = () => {
@@ -7,10 +7,11 @@ export const useGithub = () => {
   const { modal: alert } = useModal;
   const route = useRoute();
   const router = useRouter();
-  const { FETCH_GITHUB } = useApi();
+  const { $api } = useNuxtApp() as any;
+  const { FETCH_GITHUB } = $api();
   const runtimeConfig = useRuntimeConfig();
   const { GithubClientId, GithubSecret } = runtimeConfig.public;
-  const { globalLogin } = useAuthStore();
+  const { globalLogin, globalLoginOut } = useAuthStore();
 
   const getGithubProfile = async (accessToken: string) => {
 
@@ -71,5 +72,20 @@ export const useGithub = () => {
     window.location.href = link;
   };
 
-  return { githubLogin, getGithubToken, getGithubProfile };
+  const handleError = (error: any) => {
+    const { url, data, message } = error;
+
+    // GitHub 錯誤處理
+    if (url.includes("github") && data.status === "401") {
+      globalLoginOut();
+    }
+
+    return {
+      error,
+      data: null,
+      msg: message
+    };
+  }
+
+  return { githubLogin, getGithubToken, getGithubProfile, handleError };
 };

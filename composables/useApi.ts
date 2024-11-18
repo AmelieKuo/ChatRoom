@@ -1,3 +1,3 @@
-import * as api from "~~/api";
+import * as api from "~/services";
 
 export const useApi = () => api;

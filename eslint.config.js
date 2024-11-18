@@ -1,8 +1,10 @@
-import pluginVue from 'eslint-plugin-vue'
-import pluginJs from '@eslint/js'
-import stylistic from '@stylistic/eslint-plugin'
 import withNuxt from './.nuxt/eslint.config.mjs'
-import eslintRule from './public/eslintRule.js'
+import globals from "globals"
+import pluginJs from "@eslint/js"
+import tseslint from "typescript-eslint"
+import pluginVue from "eslint-plugin-vue"
+
+import stylistic from '@stylistic/eslint-plugin'
 import nuxtRule from '@nuxt/eslint-config'
 
 export default withNuxt(
@@ -12,6 +14,8 @@ export default withNuxt(
     files: ['**/*.{js,ts,vue}'],
     languageOptions: {
       globals: {
+        ...globals.browser,
+        ...globals.node,
         window: 'readonly',
         document: 'readonly',
         console: 'readonly',
@@ -19,10 +23,14 @@ export default withNuxt(
         module: 'readonly',
       },
       parserOptions: {
+        ...tseslint.parse,
         ecmaVersion: 'latest',
         sourceType: 'module',
       },
     },
+    ...pluginJs.configs.recommended,
+    ...tseslint.configs.recommended,
+    ...pluginVue.configs["flat/recommended"],
     plugins: {
       '@stylistic': stylistic,
       'vue': pluginVue,
@@ -66,13 +74,5 @@ export default withNuxt(
         },
       },
     },
-    // 'import/core-modules': [
-    //   'dayjs',
-    //   'nuxtjs-naive-ui',
-    //   'nuxt',
-    // ],
-  },
-  {
-    ...pluginJs.configs.recommended,
   },
 )

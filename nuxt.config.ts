@@ -12,6 +12,7 @@ export default defineNuxtConfig({
   },
 
   devtools: { enabled: true },
+
   app: {
     head: {
       title: process.env.NUXT_TITLE || "Default Title",
@@ -27,6 +28,7 @@ export default defineNuxtConfig({
       name: "layout", mode: "out-in",
     },
   },
+
   css: ["~/assets/css/normalize.css", "~/assets/css/main.css"],
 
   runtimeConfig: {
@@ -43,7 +45,9 @@ export default defineNuxtConfig({
       GithubSecret: process.env.NUXT_GITHUB_SECRET,
     },
   },
+
   ssr: false,
+
   vite: {
     server: {
         proxy: process.env.NODE_ENV !== "development" ? {} : {
@@ -75,15 +79,18 @@ export default defineNuxtConfig({
     ],
 
   },
-  typescript: {
-    typeCheck: true,
-  },
+
+  // typescript: {
+  //   typeCheck: true,
+  // },
+
   postcss: {
     plugins: {
       tailwindcss: {},
       autoprefixer: {},
     },
   },
+  
   hooks: {
     ready: () => {
       console.log("====================模式與環境====================");
@@ -93,12 +100,6 @@ export default defineNuxtConfig({
       console.log("=================================================");
     },
   },
-  // eslint: {
-  //   checker: {
-  //     configType: "eslintrc",
-  //   },
-  //   config: {
-  //     stylistic: true,
-  //   },
-  // },
+
+  compatibilityDate: "2024-11-11",
 });

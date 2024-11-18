@@ -1,4 +1,4 @@
-import { request } from "~/utils/request/createRequest";
+import { request } from "~/services/request/createRequest";
 
 const googleUrl = "https://www.googleapis.com/oauth2/v3";
 

@@ -1,6 +1,16 @@
 import instance from "./instance";
 
-function createRequest() {
+function createRequest(requestInfo) {
+  console.log(requestInfo)
+  const {
+    url,
+    data,
+    params,
+    base,
+    headers,
+    isUnLoad = false,
+  } = requestInfo;
+
   const get = (url: string, params: any, base?: string, headers?: object, isUnLoad: boolean) => {
     return instance(url, {
       method: "GET",

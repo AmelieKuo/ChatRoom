@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { createDiscreteApi } from "naive-ui";
-import type { joinChatRoomRequestBody } from "~~/api/types";
+import type { joinChatRoomRequestBody } from "~/services/types";
 import type { FormInst, FormRules } from "naive-ui";
-const { FETCH_CHAT } = useApi();
+
+const { $api } = useNuxtApp() as any;
+const { FETCH_CHAT } = $api();
 
 const router = useRouter();
 const useModal = createDiscreteApi(["modal"]);
