@@ -8,7 +8,7 @@ export const useGithub = () => {
   const route = useRoute();
   const router = useRouter();
   const { $api } = useNuxtApp() as any;
-  const { FETCH_GITHUB } = $api();
+  const { FETCH_GITHUB } = $api;
   const runtimeConfig = useRuntimeConfig();
   const { GithubClientId, GithubSecret } = runtimeConfig.public;
   const { globalLogin, globalLoginOut } = useAuthStore();

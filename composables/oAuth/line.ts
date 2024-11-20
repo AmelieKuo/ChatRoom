@@ -3,7 +3,7 @@ import generateUUID from "~/utils/uuid";
 /** Line OAuth 功能 */
 export const useLine = () => {
   const { $api } = useNuxtApp() as any;
-  const { FETCH_LINE } = $api();
+  const { FETCH_LINE } = $api;
   const runtimeConfig = useRuntimeConfig();
   const { LineChannel, LineSecret } = runtimeConfig.public;
   const { globalLogin, globalLoginOut } = useAuthStore();
@@ -32,7 +32,7 @@ export const useLine = () => {
         client_id: LineChannel,
       }).toString();
 
-      const response = await FETCH_LINE.GetProfile(requestBody, headers);
+      const response = await FETCH_LINE.GetProfile(requestBody, headers, handleError);
       if (response) {
         const accountInfo = {
           account: response.sub,

@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAuthStore = defineStore("auth", () => {
   const { $api, $dayjs } = useNuxtApp() as any;
-  const { FETCH_AUTH } = $api();
+  const { FETCH_AUTH } = $api;
 
   const router = useRouter();
   interface loginRequest {

@@ -33,6 +33,7 @@ export default async function instance<T>(
   const tokenAuth = await useCookie<string | undefined | null>("chatRoom_token");
   const { public: { mode, baseUrl, apiPattern } } = useRuntimeConfig(); // 從 runtimeConfig 獲取 API 基礎 URL
 
+  console.log(options)
   const hasOtherAuth = options.headers?.Authorization !== null;
   const handle3PApiError = options.error;
 

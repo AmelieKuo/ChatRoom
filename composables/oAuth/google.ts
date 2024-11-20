@@ -4,7 +4,7 @@ import { googleTokenLogin } from "vue3-google-login";
 /** Google OAuth 功能 */
 export const useGoogle = () => {
   const { $api } = useNuxtApp() as any;
-  const { FETCH_GOOGLE } = $api();
+  const { FETCH_GOOGLE } = $api;
   const runtimeConfig = useRuntimeConfig();
   const { GoogleClientId } = runtimeConfig.public;
   const { globalLogin } = useAuthStore();

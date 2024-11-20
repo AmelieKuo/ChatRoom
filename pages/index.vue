@@ -4,7 +4,7 @@ import type { joinChatRoomRequestBody } from "~/services/types";
 import type { FormInst, FormRules } from "naive-ui";
 
 const { $api } = useNuxtApp() as any;
-const { FETCH_CHAT } = $api();
+const { FETCH_CHAT } = $api;
 
 const router = useRouter();
 const useModal = createDiscreteApi(["modal"]);

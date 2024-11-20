@@ -1,25 +1,26 @@
 import { request } from "~/services/request/createRequest";
-const { handleError } = useLine();
+import type { RequestParams } from "./types";
 
 const lineUrl = "https://api.line.me/oauth2/v2.1";
 
 export const FETCH_LINE = {
-  GetToken: ({data, headers, isUnLoad}) =>
-    request.post("/token", 
-      data, 
-      lineUrl, 
+  GetToken: ({ data, headers, isUnLoad, handleError }: RequestParams) =>
+    request.post({
+      url: "/token",
+      data,
+      base: lineUrl,
       headers,
       isUnLoad,
-      handleError,
+      error: handleError,
+    }),
 
-    ),
-
-  GetProfile: ({data, headers,isUnLoad}) =>
-    request.post("/verify", 
-      data, 
-      lineUrl,
-      headers,  
+  GetProfile: ({ data, headers, isUnLoad, handleError }: RequestParams) =>
+    request.post({
+      url: "/verify",
+      data,
+      base: lineUrl,
+      headers,
       isUnLoad,
-      handleError,
-    ),
+      error: handleError,
+    }),
 };
