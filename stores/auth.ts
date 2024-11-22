@@ -27,9 +27,12 @@ export const useAuthStore = defineStore("auth", () => {
       pic: userProfile.pic,
     };
 
-    const response = await FETCH_AUTH.Login(requestBody);
-
-    console.log(response);
+    // const response = await FETCH_AUTH.Login(requestBody);
+    const response = {
+      account: requestBody.account,
+      name: requestBody.name,
+      pic: requestBody.pic,
+    };
 
     const profile = {
       account: response.account,
@@ -37,16 +40,18 @@ export const useAuthStore = defineStore("auth", () => {
       pic: response.pic,
     };
 
-    setUserProfile(profile);
+    await setUserProfile(profile);
 
-    // const tempTime = $dayjs().add(23, "hour");
-    // const maxDate = new Date($dayjs(tempTime).utc().format());
+    const tempTime = $dayjs().add(23, "hour");
+    const maxDate = new Date($dayjs(tempTime).utc().format());
 
-    // const loginToken = useCookie("roomToken", {
-    //   expires: maxDate,
-    // });
+    const loginToken = useCookie("roomToken", {
+      expires: maxDate,
+    });
+
+    const token = 'ekmkmofoomiojiojoijjj'
   
-    // loginToken.value = JSON.stringify(token);
+    loginToken.value = JSON.stringify(token);
   };
 
   /** 登出 */

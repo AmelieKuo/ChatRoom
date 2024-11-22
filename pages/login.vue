@@ -3,10 +3,6 @@ const { lineLogin } = useLine();
 const { googleLogin } = useGoogle();
 const { githubLogin } = useGithub();
 
-const handleClick = () => {
-  console.log("click");
-};
-
 definePageMeta({
   middleware: ["non-login"],
 });
@@ -58,23 +54,6 @@ definePageMeta({
         </div>
       </template>
       使用 Google 登入
-    </n-button>
-    <!-- Facebook -->
-    <n-button
-      color="#1A77F2"
-      size="large"
-      class="mt-[10px] font-bold w-[230px]"
-      @click="handleClick"
-    >
-      <template #icon>
-        <div class="">
-          <img
-            src="/icons/facebook.png"
-            alt=""
-          >
-        </div>
-      </template>
-      使用 Facebook 登入
     </n-button>
     <!-- Github -->
     <n-button

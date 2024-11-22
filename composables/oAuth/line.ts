@@ -32,7 +32,7 @@ export const useLine = () => {
         client_id: LineChannel,
       }).toString();
 
-      const response = await FETCH_LINE.GetProfile(requestBody, headers, handleError);
+      const response = await FETCH_LINE.GetProfile({data:requestBody, headers, handleError});
       if (response) {
         const accountInfo = {
           account: response.sub,
@@ -61,7 +61,7 @@ export const useLine = () => {
       }).toString();
 
       const headers = { "Content-Type": "application/x-www-form-urlencoded" };
-      const tokenResponse = await FETCH_LINE.GetToken(requestBody, headers);
+      const tokenResponse = await FETCH_LINE.GetToken({ data: requestBody, headers, handleError });
 
       if (tokenResponse?.access_token && tokenResponse?.id_token) {
         const { access_token, id_token } = tokenResponse;

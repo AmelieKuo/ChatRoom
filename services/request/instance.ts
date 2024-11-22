@@ -33,11 +33,10 @@ export default async function instance<T>(
   const tokenAuth = await useCookie<string | undefined | null>("chatRoom_token");
   const { public: { mode, baseUrl, apiPattern } } = useRuntimeConfig(); // 從 runtimeConfig 獲取 API 基礎 URL
 
-  console.log(options)
   const hasOtherAuth = options.headers?.Authorization !== null;
   const handle3PApiError = options.error;
 
-  const { data, status, error, response } = await $fetch<ResponseData<T>>(
+  const response = await $fetch<ResponseData<T>>(
     reqUrl,
     {
       method: options.method,
@@ -52,16 +51,17 @@ export default async function instance<T>(
         }
       },
       onRequestError({ error }) {
-        const { url, status, _data } = error;
 
-        /** Line OAuth2.0 錯誤 */
-        if (url.includes("api.line.me") && _data?.error_description === "invalid_request") {
-          globalLoginOut();
+        if (handle3PApiError) {
+          return handle3PApiError(error);
+        }else{
+          return handleServiceResult(error, null);
         }
 
-        return handleServiceResult(error, null);
       },
       onResponse({ response }) {
+
+        console.log(options.baseURL)
 
         if (options.baseURL){
           return response;
@@ -92,11 +92,5 @@ export default async function instance<T>(
     }
   );
 
-  // 返回結果
-  return {
-    data,
-    pending: status === "pending",
-    error: error || response?.error,
-    refresh: () => { }, // 根據需要定義 refresh 逻辑
-  };
+  return response;
 }
