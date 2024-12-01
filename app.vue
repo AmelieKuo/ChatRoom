@@ -1,13 +1,22 @@
 <script setup lang="ts">
-// const useAuth = useAuthStore();
-// const { userProfile } = storeToRefs(useAuth)
-// const { getProfile } = useAuth
-// const loginToken = useCookie('roomToken') as any
+const useAuth = useAuthStore();
+const { userProfile } = storeToRefs(useAuth);
+const { setUserProfile } = useAuth;
+const loginToken = useCookie('roomToken') as any
+import { jwtDecode } from 'jwt-decode';
 
 onMounted(async () => {
-  // if (loginToken.value && userProfile.value.name === undefined) {
-  //   await getProfile(loginToken.value.accessToken, loginToken.value.idToken)
-  // }
+  if (loginToken.value && userProfile.value.name === undefined) {
+    const parseToken = jwtDecode(loginToken.value)
+
+    const profile = {
+      account: parseToken.aud,
+      name: parseToken.nickname,
+      pic: parseToken.pic,
+    };
+
+    await setUserProfile(profile);
+  }
 });
 </script>
 

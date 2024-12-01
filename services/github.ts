@@ -1,10 +1,13 @@
 import { request } from "~/services/request/createRequest";
+import type { RequestParams } from "./types";
 
 export const FETCH_GITHUB = {
-  GetProfile: (params: any, headers?: any, githubUrl:any, isUnLoad: boolean = true) =>
-    request.get("/user",
-      params,
-      githubUrl,
+  GetProfile: ({ headers, isUnLoad = true, handleError }: RequestParams) =>
+    request.get({
+      url: "/user",
+      base: "https://api.github.com",
       headers,
-      isUnLoad),
+      error: handleError,
+      isUnLoad
+    }),
 };

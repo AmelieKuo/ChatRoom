@@ -18,7 +18,7 @@ function createRequest() {
       base,
       headers,
       isUnLoad = false,
-      error = () => null,
+      error,
     } = requestInfo;
 
     return instance(url, {
@@ -37,7 +37,7 @@ function createRequest() {
       base,
       headers,
       isUnLoad = false,
-      error = () => null,
+      error,
     } = requestInfo;
 
     return instance(url, {
@@ -56,7 +56,7 @@ function createRequest() {
       base,
       headers,
       isUnLoad = false,
-      error = () => null,
+      error,
     } = requestInfo;
 
     return instance(url, {
@@ -75,7 +75,7 @@ function createRequest() {
       base,
       headers,
       isUnLoad = false,
-      error = () => null,
+      error,
     } = requestInfo;
 
     return instance(url, {

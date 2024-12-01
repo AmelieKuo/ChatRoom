@@ -1,4 +1,4 @@
-export default async function handleServiceResult(error, message, data) {
+export default function handleServiceResult(error, message, data) {
   if (error) {
     const fail = {
       error,

@@ -34,16 +34,16 @@ const formData = ref<joinChatRoomRequestBody>({
 const handleClick = async() => {
     await formRef.value.validate(async(errors) => {
         if (!errors) {
-            console.log(formData.value);
 
-            const { message, success, data } = await FETCH_CHAT.Join(formData.value); 
+            const resp = await FETCH_CHAT.Join({data:formData.value}); 
 
+            console.log('page:',resp);
             const currentModal = modal.create({
-                title: message,
+                title: msg,
                 preset: "dialog",
             });
 
-            if (success) {
+            if (!error) {
                 setTimeout(() => {
                     currentModal.destroy();
                     router.push(`/chat/${data}`);

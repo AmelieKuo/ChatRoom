@@ -19,7 +19,7 @@ export const useGithub = () => {
       Authorization: `Bearer ${accessToken}`
     };
 
-    const resp = await FETCH_GITHUB.GetProfile(undefined, headers, "https://api.github.com");
+    const resp = await FETCH_GITHUB.GetProfile( { headers, handleError } );
 
     if (resp) {
       const accountInfo = {

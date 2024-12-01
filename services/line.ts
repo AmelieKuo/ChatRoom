@@ -4,8 +4,7 @@ import type { RequestParams } from "./types";
 const lineUrl = "https://api.line.me/oauth2/v2.1";
 
 export const FETCH_LINE = {
-  GetToken: (requestInfo: RequestParams) => {
-    const { data, headers, isUnLoad, handleError } = requestInfo;
+  GetToken: ({ data, headers, isUnLoad = true, handleError }: RequestParams) => {
     return request.post({
       url: "/token",
       data,
@@ -16,7 +15,7 @@ export const FETCH_LINE = {
     });
   },
 
-  GetProfile: ({ data, headers, isUnLoad, handleError }: RequestParams) => {
+  GetProfile: ({ data, headers, isUnLoad = true, handleError }: RequestParams) => {
     return request.post({
       url: "/verify",
       data,

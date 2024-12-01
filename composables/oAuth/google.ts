@@ -15,7 +15,7 @@ export const useGoogle = () => {
       "Authorization": `Bearer ${googleAuth.access_token}`,
     };
 
-    const response = await FETCH_GOOGLE.GetProfile(undefined,headers);
+    const response = await FETCH_GOOGLE.GetProfile({headers});
 
     if (response) {
       const accountInfo = {

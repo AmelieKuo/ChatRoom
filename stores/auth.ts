@@ -17,7 +17,7 @@ export const useAuthStore = defineStore("auth", () => {
   const getToken = useCookie("roomToken") as any;
 
   /** 登入 */
-  const globalLogin = async(userProfile) => {
+  const globalLogin = async(userProfile:any) => {
 
     const requestBody: loginRequest = {
       loginType: 2,
@@ -27,17 +27,19 @@ export const useAuthStore = defineStore("auth", () => {
       pic: userProfile.pic,
     };
 
-    // const response = await FETCH_AUTH.Login(requestBody);
-    const response = {
+    const { data:response } = await FETCH_AUTH.Login( { data: requestBody } );
+    // const response = {
+    //   account: requestBody.account,
+    //   name: requestBody.name,
+    //   pic: requestBody.pic,
+    // };
+
+    // console.log(response);
+
+    const profile = {
       account: requestBody.account,
       name: requestBody.name,
       pic: requestBody.pic,
-    };
-
-    const profile = {
-      account: response.account,
-      name: response.name,
-      pic: response.pic,
     };
 
     await setUserProfile(profile);
@@ -49,9 +51,10 @@ export const useAuthStore = defineStore("auth", () => {
       expires: maxDate,
     });
 
-    const token = 'ekmkmofoomiojiojoijjj'
+    // const token = 'ekmkmofoomiojiojoijjj'
   
-    loginToken.value = JSON.stringify(token);
+    loginToken.value = JSON.stringify(response.token);
+    router.push("/");
   };
 
   /** 登出 */
