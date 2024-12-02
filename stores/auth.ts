@@ -21,10 +21,10 @@ export const useAuthStore = defineStore("auth", () => {
 
     const requestBody: loginRequest = {
       loginType: 2,
-      account: userProfile.account,
+      account: String(userProfile.account),
       password: "",
-      name: userProfile.name,
-      pic: userProfile.pic,
+      name: String(userProfile.name),
+      pic: String(userProfile.pic),
     };
 
     const { data:response } = await FETCH_AUTH.Login( { data: requestBody } );
@@ -41,6 +41,8 @@ export const useAuthStore = defineStore("auth", () => {
       name: requestBody.name,
       pic: requestBody.pic,
     };
+
+    console.log(profile);
 
     await setUserProfile(profile);
 
@@ -59,7 +61,6 @@ export const useAuthStore = defineStore("auth", () => {
 
   /** 登出 */
   const globalLoginOut = () => {
-    console.log("登出");
     const token = useCookie("roomToken") as any;
     token.value = null;
 
@@ -71,6 +72,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   /** @func 建立會員資料 */
   const setUserProfile = (profile: Record<string, unknown>) => {
+    console.log(profile);
     userProfile.value = profile;
   };
 

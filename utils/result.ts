@@ -1,4 +1,5 @@
 export default function handleServiceResult(error, message, data) {
+  console.log(error, message, data);
   if (error) {
     const fail = {
       error,

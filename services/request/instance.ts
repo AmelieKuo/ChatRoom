@@ -6,25 +6,25 @@ import { useMessage } from 'naive-ui'
 
 interface Options {
   method: string,
-  body?: Record<string, any>,
-  params?: Record<string, any>,
-  headers?: Record<string, any>,
+  body?: any,
+  params?: any,
+  headers?: object,
   baseURL?: string,
   error?: ((error: any) => void) | null,
 }
 
-interface ResponseData<T> {
-  data: T
-  pending: boolean
-  error: any
-  refresh: () => void
-}
+// interface ResponseData<T> {
+//   data: T
+//   pending: boolean
+//   error: any
+//   refresh: () => void
+// }
 
-export default async function instance<T>(
+export default async function instance(
   reqUrl: string,
   options: Options,
   isUnLoad: boolean,
-): Promise<ResponseData<T>> {
+): Promise {
   const useAuth = useAuthStore();
   const { globalLoginOut } = useAuth;
 
@@ -35,7 +35,7 @@ export default async function instance<T>(
   const hasOtherAuth = options.headers?.Authorization != null;
   const handle3PApiError = options.error !== null && options.error !== undefined;
 
-  const response = await $fetch<ResponseData<T>>(
+  const response = await $fetch<any>(
     reqUrl,
     {
       method: options.method,
@@ -59,14 +59,15 @@ export default async function instance<T>(
         if (options.baseURL) {
           return oriResponse;
         } else {
-          const { resultCode, errorMessage, data } = oriResponse._data as any;
+          console.log(oriResponse);
+          const { resultCode, message, errorMessage, data } = oriResponse._data as any;
           /** 01: 失敗、10: 成功 */
           if (resultCode === '01') {
             const result = handleServiceResult(true, errorMessage, data);
             console.log('result:',result);
             return result
           } else {
-            const result = handleServiceResult(null, errorMessage, data);
+            const result = handleServiceResult(null, message, data);
             console.log('result:',result);
             return result
           }
@@ -93,12 +94,14 @@ export default async function instance<T>(
           //   }
           // })
 
-          const $useMsg = useMessage()
-          $useMsg.error('登入已失效，請重新登入',{
-            onLeave: () => {
-              globalLoginOut();
-            }
-          })
+          globalLoginOut();
+          // const $useMsg = useMessage()
+          // console.log($useMsg);
+          // $useMsg.error('登入已失效，請重新登入',{
+          //   onLeave: () => {
+          //     globalLoginOut();
+          //   }
+          // })
 
           // globalLoginOut();
         } else {
