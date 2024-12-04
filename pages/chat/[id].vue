@@ -58,14 +58,14 @@ const getChatContent = async () => {
     // 初始化 WebSocket 實例
         // socket.instance = new WebSocket(`ws://echo.websocket.events`);
 
-    socket.instance = new WebSocket(`ws://172.26.36.181:8087/WebSocket/${roomToken}?account=${userProfile.value.account}`, null, { headers: { Authorization: `Bearer ${loginToken.value}` } });
+    socket.instance = new WebSocket(`ws://172.26.36.181:8087/WebSocket/${roomToken}?account=${userProfile.value.account}`);
 
+    // null, { headers: { Authorization: `Bearer ${loginToken.value}` } }
       socket.instance.onmessage = (event) => {
         try {
-          const message = JSON.parse(JSON.stringify(event.data));
-          console.log(message);
+          const message = JSON.parse(event.data);
+          console.log('onmessage:', message);
           chatContent.value.push(message);
-          console.log(chatContent.value);
           scrollToBottom();
         } catch (error) {
           console.log(error);
@@ -95,7 +95,6 @@ const getChatContent = async () => {
 
 const sendMessage = () => {
   if (socket.instance && socket.instance.readyState === WebSocket.OPEN) {
-    console.log(messageInput.value);
     if (messageInput.value.trim() !== '') {
       const message = {
         chatRoomCode: roomInfo.value.id,
@@ -104,6 +103,7 @@ const sendMessage = () => {
         createDate: new Date(),
       };
 
+      console.log('send:', message);
       socket.instance.send(JSON.stringify(message));
       messageInput.value = '';
     } else {
@@ -144,7 +144,6 @@ onMounted(async () => {
               class="w-full"
               :class="msg.senderId === userProfile.account ? 'self-end' : 'self-start'"
             >
-            {{msg}}
               <div
                 class="w-full flex gap-[5px]"
                 :class="msg.senderId === userProfile.account ? 'justify-end' : ''"
