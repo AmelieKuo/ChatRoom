@@ -6,10 +6,10 @@ on:
       - main
 
 env:
-  PROJECT_NAME: chatroom
-  NODE_VERSION: 20
-  BUILD_DIR: .output
-  TAR_NAME: frontstage.tar.gz
+  PROJECT_NAME: chatroom                     # 專案名稱，PM2 用
+  NODE_VERSION: 20                           # Node.js 版本
+  BUILD_DIR: .output                         # Nuxt build 後的資料夾
+  TAR_NAME: frontstage.tar.gz                # 傳輸檔案名稱
   REMOTE_BASE: /home/AmelieKuo/project/chatroom/frontstage
   SERVER_IP: ${{ secrets.SERVER_IP }}
   SERVER_USER: ${{ secrets.SERVER_USER }}
@@ -34,8 +34,10 @@ jobs:
           npm ci
           echo "[2/3] 建置 Nuxt 專案"
           npm run build
-          echo "[3/3] 壓縮 .output 內容（不含外層資料夾）"
-          tar -czf ${{ env.TAR_NAME }} -C .output .
+          echo "[3/3] 壓縮 .output 內容（不含外層）"
+          mkdir temp_output && cp -r .output/* temp_output/
+          tar -czf ${{ env.TAR_NAME }} -C temp_output .
+          rm -rf temp_output
 
       - name: 上傳至遠端主機
         uses: appleboy/scp-action@v0.1.7
@@ -58,26 +60,26 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use ${{ env.NODE_VERSION }}
 
-            echo "[2/6] 備份現有 current/ 到 releases/"
+            echo "[2/6] 備份 current 到 releases（不含 ecosystem.config.cjs）"
             timestamp=$(date +%Y%m%d%H%M%S)
             release_dir=${{ env.REMOTE_BASE }}/releases/$timestamp
             mkdir -p $release_dir
             if [ -d "${{ env.REMOTE_BASE }}/current" ]; then
-              cp -r ${{ env.REMOTE_BASE }}/current/* $release_dir/
+              rsync -a --exclude="ecosystem.config.cjs" ${{ env.REMOTE_BASE }}/current/ $release_dir/
             fi
 
-            echo "[3/6] 清空 current 並解壓新版本"
-            rm -rf ${{ env.REMOTE_BASE }}/current/*
+            echo "[3/6] 清空 current（保留 ecosystem.config.cjs）"
+            find ${{ env.REMOTE_BASE }}/current -mindepth 1 ! -name "ecosystem.config.cjs" -exec rm -rf {} +
+
+            echo "[4/6] 解壓新版本到 current"
             tar -xzf ~/${{ env.TAR_NAME }} -C ${{ env.REMOTE_BASE }}/current
             rm -f ~/${{ env.TAR_NAME }}
 
-            echo "[4/6] 清除 releases 僅保留最新三版"
+            echo "[5/6] 清除 releases 僅保留最新三版"
             ls -tp ${{ env.REMOTE_BASE }}/releases | grep -v '/$' | tail -n +4 | xargs -I {} rm -rf ${{ env.REMOTE_BASE }}/releases/{}
 
-            echo "[5/6] 使用 PM2 啟動"
+            echo "[6/6] 使用 PM2 重啟 Nuxt SSR"
             cd ${{ env.REMOTE_BASE }}/current
             pm2 delete ${{ env.PROJECT_NAME }} || true
             pm2 start server/index.mjs --name ${{ env.PROJECT_NAME }}
             pm2 save
-
-            echo "[6/6] 完成部署"
