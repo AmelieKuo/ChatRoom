@@ -35,8 +35,8 @@ jobs:
           echo "[2/3] 建置 Nuxt 專案"
           npm run build
           echo "[3/3] 壓縮 .output 內容（不含外層）"
-          cd .output
-          tar -czf ../${{ env.TAR_NAME }} *
+          mkdir temp_output && cp -r .output/* temp_output
+          tar -czf ${{ env.TAR_NAME }} -C temp_output .
 
       - name: 上傳至遠端主機
         uses: appleboy/scp-action@v0.1.7
