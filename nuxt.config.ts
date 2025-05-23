@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   modules: ["nuxtjs-naive-ui", "@nuxtjs/tailwindcss", "@nuxt/eslint", "@pinia/nuxt"],
 
   imports: {
-    dirs: ["stores"], // 預設有 composables 和 utils
+    dirs: ["stores", "composables/oAuth"], // 預設有 composables 和 utils
   },
 
   build: {
