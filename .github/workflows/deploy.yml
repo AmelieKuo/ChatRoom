@@ -1,4 +1,4 @@
-name: Deploy ChatRoom Frontstage (Nuxt SSR)
+name: Deploy ChatRoom Frontstage with PM2
 
 on:
   push:
@@ -6,11 +6,7 @@ on:
       - main
 
 env:
-  PROJECT_NAME: chatroom
-  NODE_VERSION: 20
-  TAR_NAME: frontstage.tar.gz
-  BACKUP_PATH: ~/deploy/chatroom/releases
-  CURRENT_PATH: ~/deploy/chatroom/current
+  REMOTE_PATH: /home/AmelieKuo/project/chatroom/frontstage
   SERVER_IP: ${{ secrets.SERVER_IP }}
   SERVER_USER: ${{ secrets.SERVER_USER }}
   SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -23,27 +19,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Build Docker image
-        run: docker build -t ${{ env.PROJECT_NAME }}:latest .
-
-      - name: Save Docker image as tar
-        run: docker save ${{ env.PROJECT_NAME }}:latest | gzip > ${{ env.TAR_NAME }}
-
-      - name: Upload tar to server
+      - name: Upload source code to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
           key: ${{ env.SSH_KEY }}
-          source: ${{ env.TAR_NAME }}
-          target: "~"
+          source: "./*"
+          target: ${{ env.REMOTE_PATH }}
 
-      - name: SSH Deploy
+      - name: SSH Build and Restart with PM2 + Backup
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ env.SERVER_IP }}
@@ -52,13 +37,26 @@ jobs:
           script: |
             set -e
             timestamp=$(date +%Y%m%d%H%M%S)
-            mkdir -p ${{ env.BACKUP_PATH }}/$timestamp
-            gunzip -c ~/${{ env.TAR_NAME }} | docker load
-            rm -f ~/${{ env.TAR_NAME }}
-            docker tag ${{ env.PROJECT_NAME }}:latest ${{ env.PROJECT_NAME }}:$timestamp
-            docker save ${{ env.PROJECT_NAME }}:$timestamp | gzip > ${{ env.BACKUP_PATH }}/$timestamp/image.tar.gz
-            ln -sfn ${{ env.BACKUP_PATH }}/$timestamp ${{ env.CURRENT_PATH }}
-            docker stop ${{ env.PROJECT_NAME }} || true
-            docker rm ${{ env.PROJECT_NAME }} || true
-            docker run -d --name ${{ env.PROJECT_NAME }} --restart=always -p 3000:3000 ${{ env.PROJECT_NAME }}:latest
-            ls -tp ${{ env.BACKUP_PATH }} | grep -v '/$' | tail -n +4 | xargs -I {} rm -rf ${{ env.BACKUP_PATH }}/{}
+            base_path=${{ env.REMOTE_PATH }}
+            release_path=~/deploy/chatroom/releases/$timestamp
+
+            # 備份目前版本（如果有）
+            if [ -d "$base_path" ]; then
+              mkdir -p ~/deploy/chatroom/releases
+              cp -r $base_path $release_path
+            fi
+
+            # 保留最新三版
+            ls -tp ~/deploy/chatroom/releases | grep -v '/$' | tail -n +4 | xargs -I {} rm -rf ~/deploy/chatroom/releases/{}
+
+            # 建立最新連結
+            ln -sfn $base_path ~/deploy/chatroom/current
+
+            # 安裝與建置
+            cd $base_path
+            npm ci
+            npm run build
+
+            # 使用 PM2 啟動 Nuxt SSR
+            pm2 delete chatroom || true
+            pm2 start .output/server/index.mjs --name chatroom
