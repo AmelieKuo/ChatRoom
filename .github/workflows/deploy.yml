@@ -1,0 +1,64 @@
+name: Deploy ChatRoom Frontstage (Nuxt SSR)
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_NAME: chatroom
+  NODE_VERSION: 20
+  TAR_NAME: frontstage.tar.gz
+  BACKUP_PATH: ~/deploy/chatroom/releases
+  CURRENT_PATH: ~/deploy/chatroom/current
+  SERVER_IP: ${{ secrets.SERVER_IP }}
+  SERVER_USER: ${{ secrets.SERVER_USER }}
+  SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Build Docker image
+        run: docker build -t ${{ env.PROJECT_NAME }}:latest .
+
+      - name: Save Docker image as tar
+        run: docker save ${{ env.PROJECT_NAME }}:latest | gzip > ${{ env.TAR_NAME }}
+
+      - name: Upload tar to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ${{ env.SERVER_USER }}
+          key: ${{ env.SSH_KEY }}
+          source: ${{ env.TAR_NAME }}
+          target: "~"
+
+      - name: SSH Deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ${{ env.SERVER_USER }}
+          key: ${{ env.SSH_KEY }}
+          script: |
+            set -e
+            timestamp=$(date +%Y%m%d%H%M%S)
+            mkdir -p ${{ env.BACKUP_PATH }}/$timestamp
+            gunzip -c ~/${{ env.TAR_NAME }} | docker load
+            rm -f ~/${{ env.TAR_NAME }}
+            docker tag ${{ env.PROJECT_NAME }}:latest ${{ env.PROJECT_NAME }}:$timestamp
+            docker save ${{ env.PROJECT_NAME }}:$timestamp | gzip > ${{ env.BACKUP_PATH }}/$timestamp/image.tar.gz
+            ln -sfn ${{ env.BACKUP_PATH }}/$timestamp ${{ env.CURRENT_PATH }}
+            docker stop ${{ env.PROJECT_NAME }} || true
+            docker rm ${{ env.PROJECT_NAME }} || true
+            docker run -d --name ${{ env.PROJECT_NAME }} --restart=always -p 3000:3000 ${{ env.PROJECT_NAME }}:latest
+            ls -tp ${{ env.BACKUP_PATH }} | grep -v '/$' | tail -n +4 | xargs -I {} rm -rf ${{ env.BACKUP_PATH }}/{}
