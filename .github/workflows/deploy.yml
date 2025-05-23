@@ -38,7 +38,7 @@ jobs:
           echo "[2/3] 建置 Nuxt 專案"
           npm run build
           echo "[3/3] 壓縮 .output 內容"
-          tar -czf ${{ env.TAR_NAME }} -C .output .
+          tar -czf ${{ env.TAR_NAME }} .output
 
 
       - name: 上傳壓縮檔至遠端主機
