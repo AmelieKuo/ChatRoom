@@ -1,5 +1,5 @@
 #Docker container + proxy_pass
-FROM node:20-alpine
+FROM node:20.11.1-alpine
 
 WORKDIR /app
 COPY package*.json ./
