@@ -16,7 +16,9 @@ export const useLine = () => {
     const redirectURI = "http://localhost:3000/redirect/line";
     const scope = "profile openid";
     const link = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LineChannel}&redirect_uri=${redirectURI}&state=${tempUUID}&scope=${scope}&prompt=consent&ui_locales=zh-TW&client_secret=${LineSecret}`;
-    window.location.href = link;
+    if (process.client) {
+      window.location.href = link;
+    }
   };
 
   /** @func 獲取會員資料 */
