@@ -6,10 +6,10 @@ on:
       - main
 
 env:
-  PROJECT_NAME: chatroom                            # 專案名稱，PM2 用
-  NODE_VERSION: 20.11.1                             # Node.js 版本（與本機一致）
-  BUILD_DIR: .output                                # Nuxt build 後的資料夾
-  TAR_NAME: frontstage.tar.gz                       # 傳輸用壓縮檔案名稱
+  PROJECT_NAME: chatroom
+  NODE_VERSION: 20.11.1
+  BUILD_DIR: .output
+  TAR_NAME: frontstage.tar.gz
   REMOTE_BASE: /home/AmelieKuo/project/chatroom/frontstage
   SERVER_IP: ${{ secrets.SERVER_IP }}
   SERVER_USER: ${{ secrets.SERVER_USER }}
@@ -35,11 +35,18 @@ jobs:
         run: |
           echo "[1/3] 安裝依賴"
           npm install
+
+          echo "[2/3] 建置前 prepare 掃描"
+          npx nuxi prepare
+
+          echo "[DEBUG] 檢查 useLine 是否被 auto-import"
+          grep useLine .nuxt/imports.d.ts || echo "❌ useLine 未被掃描"
+
           echo "[2/3] 建置 Nuxt 專案"
           npm run build
+
           echo "[3/3] 壓縮 .output 內容"
           tar -czf ${{ env.TAR_NAME }} .output
-
 
       - name: 上傳壓縮檔至遠端主機
         uses: appleboy/scp-action@v0.1.7
