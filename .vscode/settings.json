@@ -1,0 +1,6 @@
+{
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur"
+  },
+  "eslint.run": "onSave",
+}
