@@ -4,12 +4,15 @@ import Components from "unplugin-vue-components/vite";
 import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 
 export default defineNuxtConfig({
-  // 在配置對象之外使用 console.log 而不是在回調函數內
   modules: ["nuxtjs-naive-ui", "@nuxtjs/tailwindcss", "@nuxt/eslint", "@pinia/nuxt"],
 
   imports: {
     dirs: ["stores"], // 預設有 composables 和 utils
   },
+
+  build: {
+    transpile: ['naive-ui', 'vueuc']
+},
 
   devtools: { enabled: true },
 

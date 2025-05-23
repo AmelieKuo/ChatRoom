@@ -69,7 +69,9 @@ export const useGithub = () => {
     const redirectURI = "http://localhost:3000/redirect/github";
     const scope = "user:email";
     const link = `https://github.com/login/oauth/authorize?client_id=${GithubClientId}&redirect_uri=${redirectURI}&state=${tempUUID}&scope=${scope}`;
-    window.location.href = link;
+    if (process.client) {
+      window.location.href = link;
+    }
   };
 
   const handleError = (error: any) => {
