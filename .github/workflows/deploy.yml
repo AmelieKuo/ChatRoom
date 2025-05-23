@@ -1,4 +1,4 @@
-name: Deploy ChatRoom Frontstage with PM2
+name: Deploy ChatRoom Frontstage (Nuxt SSR)
 
 on:
   push:
@@ -6,6 +6,10 @@ on:
       - main
 
 env:
+  PROJECT_NAME: chatroom
+  NODE_VERSION: 20
+  BUILD_DIR: .output
+  TAR_NAME: frontstage.tar.gz
   REMOTE_PATH: /home/AmelieKuo/project/chatroom/frontstage
   SERVER_IP: ${{ secrets.SERVER_IP }}
   SERVER_USER: ${{ secrets.SERVER_USER }}
@@ -19,44 +23,54 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Upload source code to server
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install & Build
+        run: |
+          echo "[1/6] 安裝"
+          npm ci
+          echo "[2/6] build"
+          npm run build
+          tar -czf ${{ env.TAR_NAME }} ${{ env.BUILD_DIR }}
+
+      - name: Upload tar to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
           key: ${{ env.SSH_KEY }}
-          source: "./*"
-          target: ${{ env.REMOTE_PATH }}
+          source: ${{ env.TAR_NAME }}
+          target: "~"
 
-      - name: SSH Build and Restart with PM2 + Backup
+      - name: SSH Deploy & Start with PM2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
           key: ${{ env.SSH_KEY }}
           script: |
-            set -e
-            timestamp=$(date +%Y%m%d%H%M%S)
-            base_path=${{ env.REMOTE_PATH }}
-            release_path=~/deploy/chatroom/releases/$timestamp
+            echo "[1/6] 載入 NVM 環境"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use ${{ env.NODE_VERSION }}
 
-            # 備份目前版本（如果有）
-            if [ -d "$base_path" ]; then
-              mkdir -p ~/deploy/chatroom/releases
-              cp -r $base_path $release_path
-            fi
+            echo "[2/6] 解壓縮部署檔案"
+            mkdir -p ${{ env.REMOTE_PATH }}
+            tar -xzf ~/${{ env.TAR_NAME }} -C ${{ env.REMOTE_PATH }}
+            rm -f ~/${{ env.TAR_NAME }}
 
-            # 保留最新三版
-            ls -tp ~/deploy/chatroom/releases | grep -v '/$' | tail -n +4 | xargs -I {} rm -rf ~/deploy/chatroom/releases/{}
+            echo "[3/6] 使用 PM2 重啟 Nuxt SSR"
+            cd ${{ env.REMOTE_PATH }}
+            pm2 delete ${{ env.PROJECT_NAME }} || true
+            pm2 start .output/server/index.mjs --name ${{ env.PROJECT_NAME }}
 
-            # 建立最新連結
-            ln -sfn $base_path ~/deploy/chatroom/current
+            echo "[4/6] 儲存 PM2 設定"
+            pm2 save
 
-            # 安裝與建置
-            cd $base_path
-            npm ci
-            npm run build
+            echo "[5/6] 設定 PM2 開機自啟（僅需執行一次）"
+            pm2 startup systemd -u $USER --hp $HOME | tail -n 1 | bash
 
-            # 使用 PM2 啟動 Nuxt SSR
-            pm2 delete chatroom || true
-            pm2 start .output/server/index.mjs --name chatroom
+            echo "[6/6] 完成部署"
