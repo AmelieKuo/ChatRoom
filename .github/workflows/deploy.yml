@@ -6,11 +6,12 @@ on:
       - main
 
 env:
-  PROJECT_NAME: chatroom
-  NODE_VERSION: 20
-  BUILD_DIR: .output
-  TAR_NAME: frontstage.tar.gz
+  PROJECT_NAME: chatroom                     # 專案名稱，PM2 用
+  NODE_VERSION: 20                           # Node.js 版本
+  BUILD_DIR: .output                         # Nuxt build 後的資料夾
+  TAR_NAME: frontstage.tar.gz                # 傳輸檔案名稱
   REMOTE_PATH: /home/AmelieKuo/project/chatroom/frontstage
+  BACKUP_DIR: ~/deploy/chatroom/releases     # 備份存放資料夾
   SERVER_IP: ${{ secrets.SERVER_IP }}
   SERVER_USER: ${{ secrets.SERVER_USER }}
   SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -20,23 +21,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout 程式碼
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: 安裝 Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install & Build
+      - name: 安裝依賴與建置 Nuxt
         run: |
-          echo "[1/6] 安裝"
+          echo "[1/3] 安裝依賴"
           npm ci
-          echo "[2/6] build"
+          echo "[2/3] 建置 Nuxt 專案"
           npm run build
+          echo "[3/3] 壓縮 .output"
           tar -czf ${{ env.TAR_NAME }} ${{ env.BUILD_DIR }}
 
-      - name: Upload tar to server
+      - name: 上傳至遠端主機
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.SERVER_IP }}
@@ -45,32 +47,35 @@ jobs:
           source: ${{ env.TAR_NAME }}
           target: "~"
 
-      - name: SSH Deploy & Start with PM2
+      - name: 遠端部署與啟動 PM2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
           key: ${{ env.SSH_KEY }}
           script: |
-            echo "[1/6] 載入 NVM 環境"
+            echo "[1/6] 載入 NVM 與切換 Node.js 版本"
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use ${{ env.NODE_VERSION }}
 
-            echo "[2/6] 解壓縮部署檔案"
+            echo "[2/6] 建立部署資料夾並解壓"
             mkdir -p ${{ env.REMOTE_PATH }}
             tar -xzf ~/${{ env.TAR_NAME }} -C ${{ env.REMOTE_PATH }}
             rm -f ~/${{ env.TAR_NAME }}
 
-            echo "[3/6] 使用 PM2 重啟 Nuxt SSR"
+            echo "[3/6] 備份現有版本"
+            timestamp=$(date +%Y%m%d%H%M%S)
+            mkdir -p ${{ env.BACKUP_DIR }}/$timestamp
+            cp -r ${{ env.REMOTE_PATH }}/* ${{ env.BACKUP_DIR }}/$timestamp/
+
+            echo "[4/6] 保留最新三版備份"
+            ls -tp ${{ env.BACKUP_DIR }} | grep -v '/$' | tail -n +4 | xargs -I {} rm -rf ${{ env.BACKUP_DIR }}/{}
+
+            echo "[5/6] 重新啟動 PM2 Nuxt SSR"
             cd ${{ env.REMOTE_PATH }}
             pm2 delete ${{ env.PROJECT_NAME }} || true
             pm2 start .output/server/index.mjs --name ${{ env.PROJECT_NAME }}
-
-            echo "[4/6] 儲存 PM2 設定"
             pm2 save
-
-            echo "[5/6] 設定 PM2 開機自啟（僅需執行一次）"
-            pm2 startup systemd -u $USER --hp $HOME | tail -n 1 | bash
 
             echo "[6/6] 完成部署"
