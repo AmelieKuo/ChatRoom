@@ -33,6 +33,9 @@ jobs:
 
       - name: 安裝依賴與建置 Nuxt
         run: |
+          pwd
+          ls -al
+          
           echo "[1/3] 安裝依賴"
           npm install
 
