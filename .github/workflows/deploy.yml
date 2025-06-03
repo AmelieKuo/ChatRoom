@@ -10,7 +10,7 @@ env:
   NODE_VERSION: 20.11.1
   BUILD_DIR: .output
   TAR_NAME: frontstage.tar.gz
-  REMOTE_BASE: /home/AmelieKuo/project/chatroom/frontstage
+  REMOTE_BASE: /opt/project/chatroom/frontstage
   SERVER_IP: ${{ secrets.SERVER_IP }}
   SERVER_USER: ${{ secrets.SERVER_USER }}
   SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -35,12 +35,6 @@ jobs:
         run: |
           echo "[1/3] 安裝依賴"
           npm install
-
-          echo "[2/3] 建置前 prepare 掃描"
-          npx nuxi prepare
-
-          echo "[DEBUG] 檢查 useLine 是否被 auto-import"
-          grep useLine .nuxt/imports.d.ts || echo "❌ useLine 未被掃描"
 
           echo "[2/3] 建置 Nuxt 專案"
           npm run build
