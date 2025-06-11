@@ -54,9 +54,7 @@ jobs:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
           key: ${{ env.SSH_KEY }}
-          source: |
-            ${{ env.TAR_NAME }}
-            ${{ env.SOCKETIO_TAR_NAME }}
+          source: "${{ env.TAR_NAME }} ${{ env.SOCKETIO_TAR_NAME }}"
           target: "~"
 
       - name: 遠端部署與 PM2 重啟
