@@ -6,12 +6,12 @@ on:
       - main
 
 env:
-  PROJECT_NAME: chatroom
-  SOCKETIO_NAME: socketio-server
+  PROJECT_NAME: chatroom                         # Nuxt SSR 專案 PM2 名稱
+  SOCKETIO_NAME: socketio-server                # Socket.IO 專案 PM2 名稱
   NODE_VERSION: 20.11.1
   BUILD_DIR: .output
-  TAR_NAME: frontstage.tar.gz
-  SOCKETIO_TAR_NAME: socketio.tar.gz
+  TAR_NAME: frontstage.tar.gz                   # 前端壓縮檔名
+  SOCKETIO_TAR_NAME: socketio.tar.gz            # Socket.IO 壓縮檔名
   REMOTE_BASE: /opt/project/chatroom/frontstage
   SOCKETIO_BASE: /opt/project/chatroom/socketio-server
   SERVER_IP: ${{ secrets.SERVER_IP }}
@@ -31,31 +31,30 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 清除 Nuxt 舊資料夾（確保乾淨打包）
+      - name: 清除舊資料夾（確保乾淨建置）
         run: rm -rf .nuxt .output node_modules
 
-      - name: 安裝依賴與建置 Nuxt
+      - name: 安裝前端依賴與建置 Nuxt SSR
         run: |
-          echo "[1/3] 安裝 Nuxt 依賴"
+          echo "[Nuxt] 安裝依賴"
           npm install
-          echo "[2/3] Nuxt 專案打包"
+          echo "[Nuxt] 建置專案"
           npm run build
-          echo "[3/3] 壓縮 .output"
+          echo "[Nuxt] 壓縮 .output"
           tar -czf ${{ env.TAR_NAME }} .output
 
-      - name: 壓縮 socketio-server
+      - name: 壓縮 Socket.IO Server
         run: |
-          echo "[Socket.IO] 壓縮 Server 程式"
+          echo "[Socket.IO] 壓縮 socketio-server 目錄"
           tar -czf ${{ env.SOCKETIO_TAR_NAME }} socketio-server
 
-      - name: 上傳壓縮檔至遠端
-        uses: appleboy/scp-action@v0.1.7
+      - name: 確認壓縮檔是否建立成功
         run: |
-          echo "上傳 Nuxt 壓縮檔: ${{ env.TAR_NAME }}"
-          echo "上傳 Socket.IO 壓縮檔: ${{ env.SOCKETIO_TAR_NAME }}"
-
           ls -lh ${{ env.TAR_NAME }}
           ls -lh ${{ env.SOCKETIO_TAR_NAME }}
+
+      - name: 上傳壓縮檔至遠端主機
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
@@ -70,26 +69,28 @@ jobs:
           username: ${{ env.SERVER_USER }}
           key: ${{ env.SSH_KEY }}
           script: |
+            echo "[1/6] 載入 NVM 並切換 Node.js 版本"
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use ${{ env.NODE_VERSION }}
 
-            echo "[Nuxt] 解壓並部署"
+            echo "[2/6] 解壓 Nuxt"
             mkdir -p ${{ env.REMOTE_BASE }}/current
             tar -xzf ~/${{ env.TAR_NAME }} -C ${{ env.REMOTE_BASE }}/current
             rm -f ~/${{ env.TAR_NAME }}
 
-            echo "[Socket.IO] 解壓並部署"
+            echo "[3/6] 解壓 Socket.IO"
             mkdir -p ${{ env.SOCKETIO_BASE }}
             tar -xzf ~/${{ env.SOCKETIO_TAR_NAME }} -C ${{ env.SOCKETIO_BASE }}
             rm -f ~/${{ env.SOCKETIO_TAR_NAME }}
 
-            echo "[PM2] 重啟 Nuxt SSR"
+            echo "[4/6] 使用 PM2 重啟 Nuxt SSR"
             cd ${{ env.REMOTE_BASE }}/current/.output
             pm2 restart ${{ env.PROJECT_NAME }} || pm2 start server/index.mjs --name ${{ env.PROJECT_NAME }}
 
-            echo "[PM2] 啟動 Socket.IO"
+            echo "[5/6] 使用 PM2 重啟 Socket.IO"
             cd ${{ env.SOCKETIO_BASE }}
             pm2 restart ${{ env.SOCKETIO_NAME }} || pm2 start index.js --name ${{ env.SOCKETIO_NAME }}
 
+            echo "[6/6] 保存 PM2 設定"
             pm2 save
