@@ -1,4 +1,4 @@
-name: Deploy ChatRoom Frontstage (Nuxt SSR)
+name: Deploy ChatRoom Frontstage (Nuxt SSR + Socket.IO)
 
 on:
   push:
@@ -7,10 +7,13 @@ on:
 
 env:
   PROJECT_NAME: chatroom
+  SOCKETIO_NAME: socketio-server
   NODE_VERSION: 20.11.1
   BUILD_DIR: .output
   TAR_NAME: frontstage.tar.gz
+  SOCKETIO_TAR_NAME: socketio.tar.gz
   REMOTE_BASE: /opt/project/chatroom/frontstage
+  SOCKETIO_BASE: /opt/project/chatroom/socketio-server
   SERVER_IP: ${{ secrets.SERVER_IP }}
   SERVER_USER: ${{ secrets.SERVER_USER }}
   SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -33,25 +36,27 @@ jobs:
 
       - name: 安裝依賴與建置 Nuxt
         run: |
-          pwd
-          ls -al
-          
-          echo "[1/3] 安裝依賴"
+          echo "[1/3] 安裝 Nuxt 依賴"
           npm install
-
-          echo "[2/3] 建置 Nuxt 專案"
+          echo "[2/3] Nuxt 專案打包"
           npm run build
-
-          echo "[3/3] 壓縮 .output 內容"
+          echo "[3/3] 壓縮 .output"
           tar -czf ${{ env.TAR_NAME }} .output
 
-      - name: 上傳壓縮檔至遠端主機
+      - name: 壓縮 socketio-server
+        run: |
+          echo "[Socket.IO] 壓縮 Server 程式"
+          tar -czf ${{ env.SOCKETIO_TAR_NAME }} socketio-server
+
+      - name: 上傳壓縮檔至遠端
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
           key: ${{ env.SSH_KEY }}
-          source: ${{ env.TAR_NAME }}
+          source: |
+            ${{ env.TAR_NAME }}
+            ${{ env.SOCKETIO_TAR_NAME }}
           target: "~"
 
       - name: 遠端部署與 PM2 重啟
@@ -61,30 +66,26 @@ jobs:
           username: ${{ env.SERVER_USER }}
           key: ${{ env.SSH_KEY }}
           script: |
-            echo "[1/6] 載入 NVM 並切換 Node.js 版本"
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use ${{ env.NODE_VERSION }}
 
-            echo "[2/6] 備份 current 到 releases（不含 ecosystem.config.cjs）"
-            timestamp=$(date +%Y%m%d%H%M%S)
-            release_dir=${{ env.REMOTE_BASE }}/releases/$timestamp
-            mkdir -p $release_dir
-            if [ -d "${{ env.REMOTE_BASE }}/current" ]; then
-              rsync -a --exclude="ecosystem.config.cjs" ${{ env.REMOTE_BASE }}/current/ $release_dir/
-            fi
-
-            echo "[3/6] 清空 current（保留 ecosystem.config.cjs）"
-            find ${{ env.REMOTE_BASE }}/current -mindepth 1 ! -name "ecosystem.config.cjs" -exec rm -rf {} +
-
-            echo "[4/6] 解壓新版本到 current"
+            echo "[Nuxt] 解壓並部署"
+            mkdir -p ${{ env.REMOTE_BASE }}/current
             tar -xzf ~/${{ env.TAR_NAME }} -C ${{ env.REMOTE_BASE }}/current
             rm -f ~/${{ env.TAR_NAME }}
 
-            echo "[5/6] 清除 releases 僅保留最新三版"
-            ls -dt ${{ env.REMOTE_BASE }}/releases/* | tail -n +4 | xargs rm -rf
+            echo "[Socket.IO] 解壓並部署"
+            mkdir -p ${{ env.SOCKETIO_BASE }}
+            tar -xzf ~/${{ env.SOCKETIO_TAR_NAME }} -C ${{ env.SOCKETIO_BASE }}
+            rm -f ~/${{ env.SOCKETIO_TAR_NAME }}
 
-            echo "[6/6] 使用 PM2 啟動 Nuxt SSR"
+            echo "[PM2] 重啟 Nuxt SSR"
             cd ${{ env.REMOTE_BASE }}/current/.output
             pm2 restart ${{ env.PROJECT_NAME }} || pm2 start server/index.mjs --name ${{ env.PROJECT_NAME }}
+
+            echo "[PM2] 啟動 Socket.IO"
+            cd ${{ env.SOCKETIO_BASE }}
+            pm2 restart ${{ env.SOCKETIO_NAME }} || pm2 start index.js --name ${{ env.SOCKETIO_NAME }}
+
             pm2 save

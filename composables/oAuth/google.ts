@@ -32,7 +32,6 @@ export const useGoogle = () => {
     googleTokenLogin({
       clientId: GoogleClientId
     }).then((googleAuth) => {
-      console.log(googleAuth);
 
       if (!googleAuth){
         return;

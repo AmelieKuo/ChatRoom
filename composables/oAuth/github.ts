@@ -1,5 +1,6 @@
 import generateUUID from "~/utils/uuid";
 import { createDiscreteApi } from "naive-ui";
+const { public: { baseUrl } } = useRuntimeConfig(); 
 
 /** Github OAuth 功能 */
 export const useGithub = () => {
@@ -28,7 +29,6 @@ export const useGithub = () => {
         pic: resp.avatar_url,
       };
 
-      console.log(accountInfo);
       globalLogin(accountInfo);
     }
   };
@@ -40,7 +40,7 @@ export const useGithub = () => {
       client_id: GithubClientId,
       code: code,
       client_secret: GithubSecret,
-      redirect_uri: "http://localhost:3000/redirect/github"
+      redirect_uri: import.meta.env.DEV ? "http://localhost:3000/redirect/github" : `${baseUrl}/redirect/github`
     };
 
     const { data, error } = await useFetch("/api/githubToken", {
@@ -66,7 +66,7 @@ export const useGithub = () => {
   const githubLogin = async () => {
     const tempUUID = generateUUID();
 
-    const redirectURI = "http://localhost:3000/redirect/github";
+    const redirectURI = import.meta.env.DEV ? "http://localhost:3000/redirect/github" : `${baseUrl}/redirect/github`
     const scope = "user:email";
     const link = `https://github.com/login/oauth/authorize?client_id=${GithubClientId}&redirect_uri=${redirectURI}&state=${tempUUID}&scope=${scope}`;
     if (process.client) {

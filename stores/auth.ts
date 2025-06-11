@@ -16,6 +16,25 @@ export const useAuthStore = defineStore("auth", () => {
   /** 取得Token */
   const getToken = useCookie("roomToken") as any;
 
+  /** 假 JWT Token */
+  const createFakeJwt = (payload: object): string => {
+    const base64Encode = (obj: object): string => {
+      const json = JSON.stringify(obj);
+      const utf8Bytes = new TextEncoder().encode(json);
+      const binary = String.fromCharCode(...utf8Bytes);
+      return btoa(binary)
+        .replace(/=/g, "")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_");
+    };
+  
+    const header = { alg: "HS256", typ: "JWT" };
+    const encodedHeader = base64Encode(header);
+    const encodedPayload = base64Encode(payload);
+  
+    return `${encodedHeader}.${encodedPayload}.fake-signature`;
+  };
+
   /** 登入 */
   const globalLogin = async(userProfile:any) => {
 
@@ -27,25 +46,8 @@ export const useAuthStore = defineStore("auth", () => {
       pic: String(userProfile.pic),
     };
 
-    const { data:response } = await FETCH_AUTH.Login( { data: requestBody } );
-    // const response = {
-    //   account: requestBody.account,
-    //   name: requestBody.name,
-    //   pic: requestBody.pic,
-    // };
-
-    // console.log(response);
-
-    const profile = {
-      account: requestBody.account,
-      name: requestBody.name,
-      pic: requestBody.pic,
-    };
-
-    console.log(profile);
-
-    await setUserProfile(profile);
-
+    let profile: Record<string, unknown> = requestBody as unknown as Record<string, unknown>;
+    
     const tempTime = $dayjs().add(23, "hour");
     const maxDate = new Date($dayjs(tempTime).utc().format());
 
@@ -53,9 +55,22 @@ export const useAuthStore = defineStore("auth", () => {
       expires: maxDate,
     });
 
-    // const token = 'ekmkmofoomiojiojoijjj'
+    if(!import.meta.env.DEV){
+      const { data: response } = await FETCH_AUTH.Login( { data: requestBody } );
+      profile = {
+        account: response.account,
+        name: response.name,
+        pic: response.pic,
+      };
+      
+      loginToken.value = JSON.stringify(response.token);
+    }
+    
+    await setUserProfile(profile);
   
-    loginToken.value = JSON.stringify(response.token);
+    if(import.meta.env.DEV){
+      loginToken.value = createFakeJwt(profile);
+    }
     router.push("/");
   };
 
@@ -72,7 +87,6 @@ export const useAuthStore = defineStore("auth", () => {
 
   /** @func 建立會員資料 */
   const setUserProfile = (profile: Record<string, unknown>) => {
-    console.log(profile);
     userProfile.value = profile;
   };
 

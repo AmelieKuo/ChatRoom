@@ -17,8 +17,8 @@ const loginToken = useCookie("roomToken");
 
 const formRef = ref<FormInst | null>(null);
 const formData = ref<joinChatRoomRequestBody>({
-  chatRoomCode: "063ab9354cc54c6",
-  chatRoomPassword: "123456",
+  chatRoomCode: "",
+  chatRoomPassword: "",
 });
 
  const rules: FormRules = {
@@ -32,8 +32,9 @@ const formData = ref<joinChatRoomRequestBody>({
 
 const showModal = ref(false)
 
-/** @func 進入聊天室 */ 
+/** @func 正式 Api 進入聊天室 */ 
 const handleClick = async() => {
+    if (!formRef.value) return;
     await formRef.value.validate(async(errors) => {
         if (!errors) {
 
@@ -86,6 +87,17 @@ const handleCreateRoom = async() => {
             }, 3000);
 };
 
+/** @func 測試進入聊天室 */ 
+const handleClickToRoom = async() => {
+    if (!formRef.value) return;
+    await formRef.value.validate(async(errors) => {
+        if (!errors) {
+          router.push(`/chat/${formData.value.chatRoomCode}`);
+        }
+    });
+};
+
+/** 表單驗證相關 */ 
 const createFormRef = ref<FormInst | null>(null);
 const createFormData = ref({
   account: "",
@@ -118,11 +130,11 @@ onMounted(() => {});
       class="flex flex-col gap-[20px] justify-center items-center bg-white p-5 min-h-screen md:min-h-fit"
     >
       <div
-        class="rounded-full border border-4 border-[#63e2b7] overflow-hidden w-[60%]"
+        class="rounded-full border border-4 border-[#63e2b7] overflow-hidden w-[60%] max-w-[200px]"
       >
         <img
-          v-if="userProfile.picture"
-          :src="userProfile.picture"
+          v-if="userProfile.pic"
+          :src="userProfile.pic"
         >
         <img
           v-else
@@ -134,8 +146,6 @@ onMounted(() => {});
       <p class="font-bold text-[28px] w-full">
         Hi! {{ userProfile.name }}
       </p>
-  
-      {{ userProfile }}
   
         <n-form ref="formRef" :model="formData" :rules="rules" :show-label="false" class="w-full">
           <n-form-item path="chatRoomCode">
@@ -160,7 +170,7 @@ onMounted(() => {});
       <n-button
         type="primary"
         class="mt-[10px] w-full font-bold h-[50px]"
-        @click="handleClick"
+        @click="handleClickToRoom"
       >
         進入聊天室
       </n-button>

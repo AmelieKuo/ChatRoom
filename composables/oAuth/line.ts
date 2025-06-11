@@ -5,7 +5,7 @@ export const useLine = () => {
   const { $api } = useNuxtApp() as any;
   const { FETCH_LINE } = $api;
   const runtimeConfig = useRuntimeConfig();
-  const { LineChannel, LineSecret } = runtimeConfig.public;
+  const { LineChannel, LineSecret, baseUrl } = runtimeConfig.public;
   const { globalLogin, globalLoginOut } = useAuthStore();
   const router = useRouter();
   const route = useRoute();
@@ -13,7 +13,7 @@ export const useLine = () => {
   /** @func Line登入 */
   const lineLogin = () => {
     const tempUUID = generateUUID();
-    const redirectURI = "http://localhost:3000/redirect/line";
+    const redirectURI = import.meta.env.DEV ? "http://localhost:3000/redirect/line" : `${baseUrl}/redirect/line`;    
     const scope = "profile openid";
     const link = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LineChannel}&redirect_uri=${redirectURI}&state=${tempUUID}&scope=${scope}&prompt=consent&ui_locales=zh-TW&client_secret=${LineSecret}`;
     if (process.client) {
