@@ -92,6 +92,10 @@ jobs:
             mkdir -p ${{ env.SOCKETIO_BASE }}
             tar -xzf ~/${{ env.SOCKETIO_TAR_NAME }} -C ${{ env.SOCKETIO_BASE }}
             rm -f ~/${{ env.SOCKETIO_TAR_NAME }}
+            
+            echo "安裝 Socket.IO"
+            cd ${{ env.SOCKETIO_BASE }}
+            npm install
 
             echo "[4/6] 使用 PM2 重啟 Nuxt SSR"
             cd ${{ env.REMOTE_BASE }}/current/.output
