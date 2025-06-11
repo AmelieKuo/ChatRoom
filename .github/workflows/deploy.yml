@@ -53,13 +53,22 @@ jobs:
           ls -lh ${{ env.TAR_NAME }}
           ls -lh ${{ env.SOCKETIO_TAR_NAME }}
 
-      - name: 上傳壓縮檔至遠端主機
+      - name: 上傳 Nuxt 壓縮檔
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
           key: ${{ env.SSH_KEY }}
-          source: "${{ env.TAR_NAME }} ${{ env.SOCKETIO_TAR_NAME }}"
+          source: ${{ env.TAR_NAME }}
+          target: "~"
+
+      - name: 上傳 Socket.IO 壓縮檔
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ${{ env.SERVER_USER }}
+          key: ${{ env.SSH_KEY }}
+          source: ${{ env.SOCKETIO_TAR_NAME }}
           target: "~"
 
       - name: 遠端部署與 PM2 重啟
