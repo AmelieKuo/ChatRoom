@@ -50,6 +50,12 @@ jobs:
 
       - name: 上傳壓縮檔至遠端
         uses: appleboy/scp-action@v0.1.7
+        run: |
+          echo "上傳 Nuxt 壓縮檔: ${{ env.TAR_NAME }}"
+          echo "上傳 Socket.IO 壓縮檔: ${{ env.SOCKETIO_TAR_NAME }}"
+
+          ls -lh ${{ env.TAR_NAME }}
+          ls -lh ${{ env.SOCKETIO_TAR_NAME }}
         with:
           host: ${{ env.SERVER_IP }}
           username: ${{ env.SERVER_USER }}
