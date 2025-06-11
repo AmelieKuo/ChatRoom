@@ -1,36 +1,34 @@
+<!-- 使用原生 WebSocket -->
 <script setup lang="ts">
+import type { Socket } from 'socket.io-client';
 import { Send16Filled } from '@vicons/fluent';
 import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
 import { ref, watch, onMounted, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+const loginToken = useCookie('roomToken') as any
+
+const { originChatContent, newSocketInstance, onMessage, sendMessage } = useWebsocket();
+const { newIOConnect, onIOMessage, sendIOMessage, onOnlineUsers } = useSocketIO();
 
 const { $dayjs } = useNuxtApp() as any;
 const route = useRoute();
 const router = useRouter();
-const loginToken = useCookie('roomToken') as any
 
 const useAuth = useAuthStore();
 const { userProfile } = storeToRefs(useAuth);
 
 const roomInfo = ref({
   id: route.params.id,
-  chatRoomName: "BotBotBot",
+  chatRoomName: "聊天室編號",
   description: 'This is a chat room',
 });
-
-const caller = {
-  name: '小明',
-  account: "小明",
-  pic: "",
-};
 
 const chatWindow = ref<HTMLElement | null>(null);
 const chatContent = ref<any[]>([]);
 const messageInput = ref('');
-const socket = reactive<any>({
-  instance: null,  // 初始化為 null，並在後面進行 WebSocket 實例的賦值
-});
+const socket = ref<WebSocket | null>(null);
+const socketIo = ref<Socket | null>(null);
 
 async function scrollToBottom() {
   await nextTick();
@@ -41,85 +39,148 @@ async function scrollToBottom() {
     });
   }
 }
+//#region WebSocket
+const getWebSocketContent = async () => {
+  const roomKey = route.params.id as string;
 
-watch(() => userProfile.value.account, async (newAccount) => {
-  if (newAccount) {
-    await getChatContent();
-  }
-}, { immediate: true });
-
-const getChatContent = async () => {
-  const roomToken = sessionStorage.getItem('roomKey');
-
-  if (roomToken) {
-    if (socket.instance) {  // 檢查是否已經有 WebSocket 連接
-      socket.instance.close();  // 關閉已存在的連接
+  if (loginToken.value !== null || loginToken.value !== undefined && roomKey !== undefined ) {
+    if (socket.value && socket.value.readyState === WebSocket.OPEN) {
+      return;
     }
-    // 初始化 WebSocket 實例
-        // socket.instance = new WebSocket(`ws://echo.websocket.events`);
 
-    socket.instance = new WebSocket(`ws://172.26.36.181:8087/WebSocket/${roomToken}?account=${userProfile.value.account}`);
+    if (socket.value && socket.value.readyState !== WebSocket.CLOSED) {
+      socket.value.close();
+    }
 
-    // null, { headers: { Authorization: `Bearer ${loginToken.value}` } }
-      socket.instance.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          console.log('onmessage:', message);
-          chatContent.value.push(message);
-          scrollToBottom();
-        } catch (error) {
-          console.log(error);
-          console.warn('收到非 JSON 格式資料:', event.data);
-        }
-      };
+    // 1. 初始化 socket 實例
+    socket.value = newSocketInstance(); // socket.value = newSocketInstance(userProfile.value.account);
 
+    // 2. 獲取 WebSocket 訊息
+    socket.value.onmessage = async (event) => {
+      await onMessage(event);
+      chatContent.value = [...originChatContent.value];
+      await scrollToBottom();
+    };
 
-    socket.instance.onopen = () => {
+    socket.value.onopen = () => {
       console.log('WebSocket 已連接');
     };
 
-    socket.instance.onerror = (error) => {
+    socket.value.onerror = (error) => {
       console.error('WebSocket 發生錯誤:', error);
     };
 
-    socket.instance.onclose = (event) => {
+    socket.value.onclose = (event) => {
       console.log('WebSocket 連接關閉:', event);
     };
   } else {
-    sessionStorage.removeItem('roomKey');
     router.push('/');
   }
 
   await scrollToBottom();
 };
 
-const sendMessage = () => {
-  if (socket.instance && socket.instance.readyState === WebSocket.OPEN) {
-    if (messageInput.value.trim() !== '') {
-      const message = {
-        chatRoomCode: roomInfo.value.id,
-        account: userProfile.value.account,
-        message: messageInput.value,
-        createDate: new Date(),
-      };
+const sendWebSocket = () => {
+  if (!messageInput.value.trim()) return;
 
-      console.log('send:', message);
-      socket.instance.send(JSON.stringify(message));
-      messageInput.value = '';
-    } else {
-      console.error('訊息為空，無法發送');
+  const msg = {
+    chatRoomCode: roomInfo.value.id,
+    senderId: userProfile.value.account,
+    message: messageInput.value,
+    createDate: new Date(),
+  };
+
+  sendMessage(socket.value, msg);
+  messageInput.value = '';
+};
+//#endregion
+
+//#region SocketIO
+const onlineUserList = ref<any[]>([]);
+const caller = ref<any>({});
+const getIOContent = async () => {
+  const roomKey = route.params.id as string;
+
+  if ((loginToken.value || loginToken.value !== undefined) && roomKey) {
+    if (socketIo.value?.connected) return;
+
+    // 中斷舊連線
+    if (socketIo.value) {
+      socketIo.value.disconnect();
     }
+
+    // 建立新連線
+    socketIo.value = newIOConnect({
+      roomKey: roomInfo.value.id,
+      account: userProfile.value.account,
+      name: userProfile.value.name,
+      pic: userProfile.value.pic,
+    });
+
+    // 接收聊天訊息
+    onIOMessage(socketIo.value, (msg) => {
+      originChatContent.value.push(msg);
+      chatContent.value = [...originChatContent.value];
+      console.log(chatContent.value);
+      scrollToBottom();
+    });
+
+    // 接收在線名單
+    onOnlineUsers(socketIo.value, (users) => {
+      onlineUserList.value = users;
+      caller.value = onlineUserList.value.find(user => user.id !== userProfile.value.account) || {};
+      // 第二位使用者加入後
+      const others = JSON.parse(JSON.stringify(users)).filter(u => u.id !== userProfile.value.account);
+      others.forEach(u => {
+        chatContent.value.push({
+          senderId: 'system',
+          message: `使用者 ${u.name} 已在線`,
+          caller: u,
+          createDate: new Date(),
+        });
+      });
+    });
   } else {
-    console.error('WebSocket 未連接');
+    router.push('/');
   }
+};
+
+/** 發送 Socket 訊息 */
+const sendSocketIO = () => {
+  if (!messageInput.value.trim()) return;
+
+  const msg = {
+    senderId: userProfile.value.account,
+    message: messageInput.value,
+    createDate: new Date(),
+  };
+
+  if (socketIo.value) {
+    sendIOMessage(socketIo.value, msg);
+    originChatContent.value.push(msg);
+    chatContent.value = [...originChatContent.value];
+    messageInput.value = '';
+  }
+};
+//#endregion
+
+const send = () => {
+  sendSocketIO();
+  // sendWebSocket();
 };
 
 
 onMounted(async () => {
   if (userProfile.value.account) {
-    await getChatContent();
+    await getIOContent();
   }
 });
+
+watch(() => userProfile.value.account, async (newAccount) => {
+  if (newAccount) {
+    await getIOContent();
+  }
+}, { immediate: true });
 </script>
 
 <template>
@@ -132,7 +193,7 @@ onMounted(async () => {
       <div class="w-full h-[calc(100dvh-33px-5px-10px-3rem)] mt-[10px] bg-white rounded-[33px] flex flex-col p-5 divide-y-2">
         <div class="w-full flex-1 overflow-hidden">
           <p class="text-[20px] text-left p-2 shadow-[0_0_6px_rgba(0,0,0,0.2)]">
-            {{ userProfile.name }}
+            {{ caller.name }}
           </p>
           <ul
             ref="chatWindow"
@@ -142,15 +203,16 @@ onMounted(async () => {
               v-for="(msg, index) in chatContent"
               :key="index"
               class="w-full"
-              :class="msg.senderId === userProfile.account ? 'self-end' : 'self-start'"
+              :class="msg.senderId === userProfile.account ? 'self-end' : msg.senderId === 'system' ? 'self-center' : 'self-start'"
             >
               <div
+                v-if="msg.senderId !== 'system'"
                 class="w-full flex gap-[5px]"
                 :class="msg.senderId === userProfile.account ? 'justify-end' : ''"
               >
                 <div
                   v-if="msg.senderId !== userProfile.account"
-                  class="h-[36px] w-[36px] overflow-hidden rounded-full self-center"
+                  class="h-[36px] w-[36px] overflow-hidden rounded-full self-start"
                 >
                   <img
                     :src="caller.pic ? caller.pic : '/image/defalut_headshot.jpg'"
@@ -167,11 +229,12 @@ onMounted(async () => {
                 </div>
                 <div
                   :class="msg.senderId === userProfile.account ? 'bg-green-200 max-w-[calc(90%-56px)]' : 'bg-gray-200 max-w-[calc(90%-56px-36px)]'"
-                  class="p-[10px_20px] rounded-[30px] overflow-hidden"
+                  class="p-[10px_20px] rounded-[15px] overflow-hidden whitespace-pre-wrap break-words"
                 >
                   {{ msg.message }}
                 </div>
               </div>
+              <p v-else class="text-center text-gray-200">{{ msg.message }}</p>
             </li>
           </ul>
         </div>
@@ -184,10 +247,11 @@ onMounted(async () => {
               :autosize="{ minRows: 3, maxRows: 5 }"
               placeholder="請輸入訊息..."
               class="rounded-none h-full"
+              @keyup.enter="send"
             />
             <div
               class="static md:hidden self-end"
-              @click="sendMessage"
+              @click="send"
             >
               <n-icon
                 :component="Send16Filled"
