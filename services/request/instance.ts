@@ -112,6 +112,5 @@ export default async function instance(
     }
   );
   
-  console.log('instance response:', response);
   return response;
 }

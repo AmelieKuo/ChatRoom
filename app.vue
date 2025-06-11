@@ -9,15 +9,11 @@ onMounted(async () => {
   if (loginToken.value && userProfile.value.name === undefined) {
     const parseToken = jwtDecode(loginToken.value)
 
-    console.log(parseToken)
-
     const profile = {
       account: parseToken.account,
-      name: parseToken.aud,
+      name: parseToken.name || parseToken.aud,
       pic: parseToken.pic,
     };
-
-    console.log(parseToken);
 
     await setUserProfile(profile);
   }

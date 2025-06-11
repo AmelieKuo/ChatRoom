@@ -7,23 +7,6 @@ definePageMeta({
   middleware: ["non-login"],
 });
 
-const handleClick = async() => {
-
-  const res = await $fetch('http://172.26.36.181:8087/api/Login', {
-    method: 'POST',
-
-    body: {
-      // My form data
-    },
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-
-  console.log(res);
-};
-
-
 </script>
 
 <template>
@@ -37,23 +20,6 @@ const handleClick = async() => {
       >
     </div>
     <h1 class="text-[25px]">歡迎使用 ChatRoom</h1>
-    <!-- Line -->
-    <n-button
-      color="#06C755"
-      size="large"
-      class="mt-[10px] font-bold w-[230px]"
-      @click="handleClick"
-    >
-      <template #icon>
-        <div class="">
-          <img
-            src="/icons/line.png"
-            alt=""
-          >
-        </div>
-      </template>
-      測試
-    </n-button>
     <!-- Line -->
     <n-button
       color="#06C755"
