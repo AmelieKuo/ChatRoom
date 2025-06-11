@@ -46,7 +46,7 @@ jobs:
       - name: 壓縮 Socket.IO Server
         run: |
           echo "[Socket.IO] 壓縮 socketio-server 目錄"
-          tar -czf ${{ env.SOCKETIO_TAR_NAME }} socketio-server
+          tar -czf ${{ env.SOCKETIO_TAR_NAME }} -C socketio-server .
 
       - name: 確認壓縮檔是否建立成功
         run: |
