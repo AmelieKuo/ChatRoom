@@ -155,7 +155,7 @@ onMounted(() => {});
 <template>
   <section>
     <div
-      class="flex flex-col gap-[20px] justify-center items-center bg-white p-5 min-h-screen md:min-h-fit"
+      class="flex flex-col gap-[20px] justify-center items-center bg-white p-5 min-h-[100dvh] md:min-h-fit"
     >
       <div
         class="rounded-full border border-4 border-[#63e2b7] overflow-hidden w-[60%] max-w-[200px]"

@@ -225,8 +225,8 @@ watch(() => userProfile.value.account, async (newAccount) => {
 </script>
 
 <template>
-  <section class="w-full">
-    <div class="p-5 min-h-screen md:min-h-fit box-border scroll-smooth">
+  <section class="w-full h-[100dvh]">
+    <div class="p-5 h-100% md:min-h-fit box-border scroll-smooth">
       <div class="bg-black font-bold text-white p-[5px] text-center text-[20px] rounded-[33px]">
         {{ roomInfo.chatRoomName }}
         <span class="text-[1rem] text-gray-200">房號：{{ roomInfo.id }}</span>
