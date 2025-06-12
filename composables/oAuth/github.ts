@@ -11,7 +11,7 @@ export const useGithub = () => {
   const { $api } = useNuxtApp() as any;
   const { FETCH_GITHUB } = $api;
   const runtimeConfig = useRuntimeConfig();
-  const { GithubClientId, GithubSecret } = runtimeConfig.public;
+  const { GithubClientId, GithubSecret, mode } = runtimeConfig.public;
   const { globalLogin, globalLoginOut } = useAuthStore();
 
   const getGithubProfile = async (accessToken: string) => {
@@ -40,7 +40,7 @@ export const useGithub = () => {
       client_id: GithubClientId,
       code: code,
       client_secret: GithubSecret,
-      redirect_uri: import.meta.env.DEV ? "http://localhost:3000/redirect/github" : `${baseUrl}/redirect/github`
+      redirect_uri: mode === "development" ? "http://localhost:3000/redirect/github" : `${baseUrl}/redirect/github`
     };
 
     const { data, error } = await useFetch("/nuxt-api/githubToken", {
@@ -66,7 +66,7 @@ export const useGithub = () => {
   const githubLogin = async () => {
     const tempUUID = generateUUID();
 
-    const redirectURI = import.meta.env.DEV ? "http://localhost:3000/redirect/github" : `${baseUrl}/redirect/github`
+    const redirectURI = mode === "development" ? "http://localhost:3000/redirect/github" : `${baseUrl}/redirect/github`
     const scope = "user:email";
     const link = `https://github.com/login/oauth/authorize?client_id=${GithubClientId}&redirect_uri=${redirectURI}&state=${tempUUID}&scope=${scope}`;
     if (process.client) {

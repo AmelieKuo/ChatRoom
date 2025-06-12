@@ -4,11 +4,11 @@ import { io, Socket } from 'socket.io-client';
 export const useSocketIO = () => {
 
   const runtimeConfig = useRuntimeConfig();
-  const { baseUrl } = runtimeConfig.public;
+  const { baseUrl, mode } = runtimeConfig.public;
 
   // 建立新的 Socket.IO
   const newIOConnect = (user:any): Socket => {
-    const socket = io(import.meta.env.DEV ? "http://localhost:3001" : `${baseUrl}:`, {
+    const socket = io(mode === "development" ? "http://localhost:3001" : `${baseUrl}:`, {
       path: '/socket.io',
       auth: user,
     });

@@ -4,6 +4,8 @@ export const useAuthStore = defineStore("auth", () => {
   const { $api, $dayjs } = useNuxtApp() as any;
   const { FETCH_AUTH } = $api;
 
+  const { public: { mode } } = useRuntimeConfig();
+
   const router = useRouter();
   interface loginRequest {
     loginType: number; // 1: 一般登入, 2: 第三方登入
@@ -55,7 +57,7 @@ export const useAuthStore = defineStore("auth", () => {
       expires: maxDate,
     });
 
-    if(!import.meta.env.DEV){
+    if(mode !== "development"){
       const { data: response } = await FETCH_AUTH.Login( { data: requestBody } );
       profile = {
         account: response.account,
@@ -68,7 +70,7 @@ export const useAuthStore = defineStore("auth", () => {
     
     await setUserProfile(profile);
   
-    if(import.meta.env.DEV){
+    if(mode === "development"){
       loginToken.value = createFakeJwt(profile);
     }
     router.push("/");
