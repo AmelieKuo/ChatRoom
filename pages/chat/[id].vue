@@ -97,7 +97,7 @@ const sendWebSocket = () => {
 
 //#region SocketIO
 const onlineUserList = ref<any[]>([]);
-const caller = ref<any>({});
+const userNickname = ref<string | null>(null);
 const getIOContent = async () => {
   const roomKey = route.params.id as string;
 
@@ -109,11 +109,14 @@ const getIOContent = async () => {
       socketIo.value.disconnect();
     }
 
+    // 取得匿名名稱
+    userNickname.value = sessionStorage.getItem(`nickname-${roomInfo.value.id}`);
+
     // 建立新連線
     socketIo.value = newIOConnect({
       roomKey: roomInfo.value.id,
       account: userProfile.value.account,
-      name: userProfile.value.name,
+      name: userNickname.value || userProfile.value.name,
       pic: userProfile.value.pic,
     });
 
@@ -127,17 +130,6 @@ const getIOContent = async () => {
     // 接收在線名單
     onOnlineUsers(socketIo.value, (users) => {
       onlineUserList.value = users;
-      caller.value = onlineUserList.value.find(user => user.id !== userProfile.value.account) || {};
-      // 第二位使用者加入後
-      const others = JSON.parse(JSON.stringify(users)).filter(u => u.id !== userProfile.value.account);
-      others.forEach(u => {
-        chatContent.value.push({
-          senderId: 'system',
-          message: `使用者 ${u.name} 已在線`,
-          caller: u,
-          createDate: new Date(),
-        });
-      });
     });
   } else {
     router.push('/');
@@ -150,6 +142,8 @@ const sendSocketIO = () => {
 
   const msg = {
     senderId: userProfile.value.account,
+    senderName: userNickname.value || userProfile.value.name,
+    senderPic: userProfile.value.pic,
     message: messageInput.value,
     createDate: new Date(),
   };
@@ -159,13 +153,35 @@ const sendSocketIO = () => {
     originChatContent.value.push(msg);
     chatContent.value = [...originChatContent.value];
     messageInput.value = '';
+    scrollToBottom();
   }
 };
 //#endregion
 
+const isComposing = ref(false);
+
 const send = () => {
   sendSocketIO();
   // sendWebSocket();
+};
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === "Enter") {
+      if (isComposing.value) return;
+      if (!e.shiftKey) {
+        e.preventDefault(); // 禁止換行
+        send();
+      }
+      // Shift + Enter 允許換行
+    }
+};
+
+const handleCompositionStart = () => {
+  isComposing.value = true;
+};
+
+const handleCompositionEnd = () => {
+  isComposing.value = false;
 };
 
 
@@ -191,8 +207,8 @@ watch(() => userProfile.value.account, async (newAccount) => {
       </div>
       <div class="w-full h-[calc(100dvh-33px-5px-10px-3rem)] mt-[10px] bg-white rounded-[33px] flex flex-col p-5 divide-y-2">
         <div class="w-full flex-1 overflow-hidden">
-          <p class="text-[20px] text-left p-2 shadow-[0_0_6px_rgba(0,0,0,0.2)]">
-            {{ caller.name }}
+          <p v-show="onlineUserList.length === 2" class="text-[20px] text-left p-2 shadow-[0_0_6px_rgba(0,0,0,0.2)]">
+            {{ onlineUserList.find(user => user.id !== userProfile.account)?.name }}
           </p>
           <ul
             ref="chatWindow"
@@ -209,30 +225,50 @@ watch(() => userProfile.value.account, async (newAccount) => {
                 class="w-full flex gap-[5px]"
                 :class="msg.senderId === userProfile.account ? 'justify-end' : ''"
               >
-                <div
-                  v-if="msg.senderId !== userProfile.account"
-                  class="h-[36px] w-[36px] overflow-hidden rounded-full self-start"
-                >
-                  <img
-                    :src="caller.pic ? caller.pic : '/image/defalut_headshot.jpg'"
-                    alt="user profile"
-                    class="w-full h-full object-cover"
+
+                  <!-- 大頭貼 -->
+                  <div
+                    v-if="msg.senderId !== userProfile.account"
+                    class="h-[36px] w-[36px] overflow-hidden rounded-full self-start"
                   >
+                    <img
+                      :src="msg.senderPic ? msg.senderPic : '/image/defalut_headshot.jpg'"
+                      alt="user profile"
+                      class="w-full h-full object-cover"
+                    >
+                  </div>
+
+                  <div
+                   :class="msg.senderId === userProfile.account ? 'w-[calc(100%-36px)] ' : 'w-[calc(100%-56px)] '"
+                    class="flex flex-col gap-[8px]">
+                    <!-- 名字 -->
+                    <div v-show="onlineUserList.length > 2 && msg.senderId !== userProfile.account"class="flex items-center gap-[5px]">
+                      <div>{{ msg.senderName }}</div>
+                    </div>
+    
+                    <div :class="msg.senderId === userProfile.account ? 'justify-end' : 'justify-start'" class="max-w-full flex items-end gap-[5px]">
+                      <!-- 訊息 -->
+                      <div
+                        :class="msg.senderId === userProfile.account ? 'bg-green-200 max-w-[calc(90%-56px)]' : 'bg-gray-200 max-w-[calc(90%-56px)]'"
+                        class="w-fit p-[10px_20px] rounded-[15px] overflow-hidden whitespace-pre-wrap break-words"
+                      >
+                        {{ msg.message }}
+                      </div>
+    
+                      <!-- 時間/已讀 -->
+                      <div
+                        :class="msg.senderId === userProfile.account ? 'items-end order-first' : 'items-start order-last'"
+                        class="self-end flex flex-col text-[10px] gap-[2px]"
+                      >
+                        <p>{{ msg.isRead ? '已讀' : '' }}</p>
+                        <p>{{ $dayjs(msg.createDate).format('MM/DD hh:mm') }}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div
-                  :class="msg.senderId === userProfile.account ? 'items-end order-first' : 'items-start order-last'"
-                  class="self-end flex flex-col text-[10px] gap-[2px]"
-                >
-                  <p>{{ msg.isRead ? '已讀' : '' }}</p>
-                  <p>{{ $dayjs(msg.createDate).format('MM/DD hh:mm') }}</p>
-                </div>
-                <div
-                  :class="msg.senderId === userProfile.account ? 'bg-green-200 max-w-[calc(90%-56px)]' : 'bg-gray-200 max-w-[calc(90%-56px-36px)]'"
-                  class="p-[10px_20px] rounded-[15px] overflow-hidden whitespace-pre-wrap break-words"
-                >
-                  {{ msg.message }}
-                </div>
-              </div>
+
+
+              <!-- 官方訊息 -->
               <p v-else class="text-center text-gray-200">{{ msg.message }}</p>
             </li>
           </ul>
@@ -246,10 +282,12 @@ watch(() => userProfile.value.account, async (newAccount) => {
               :autosize="{ minRows: 3, maxRows: 5 }"
               placeholder="請輸入訊息..."
               class="rounded-none h-full"
-              @keyup.enter="send"
+              @keydown="handleKeydown"
+              @compositionstart="handleCompositionStart"
+              @compositionend="handleCompositionEnd"
             />
             <div
-              class="static md:hidden self-end"
+              class="static self-end"
               @click="send"
             >
               <n-icon

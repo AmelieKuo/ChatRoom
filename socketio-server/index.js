@@ -7,82 +7,108 @@ const app = express();
 app.use(cors());
 
 const server = http.createServer(app);
-
 const io = new Server(server, {
-  cors: {
-    origin: '*',
-  }
+  cors: { origin: '*' }
 });
 
-// 儲存每個房間的使用者清單
-const roomUserMap = new Map();
+// Map<roomId, Map<account, { sockets: Set<socketId>, info: { name, pic } }>>
+const roomUserSockets = new Map();
 
 io.on('connection', (socket) => {
   const { roomKey, account, name, pic } = socket.handshake.auth;
   const roomId = roomKey;
 
   if (!roomId || !account) {
-    console.warn('缺少房號，終止連線');
     socket.disconnect();
     return;
   }
 
   socket.join(roomId);
-  console.log(`使用者 ${name} 加入房間`);
 
-  // 初始化房間使用者清單
-  if (!roomUserMap.has(roomId)) {
-    roomUserMap.set(roomId, new Set());
+  // ✅ 初始化房間
+  if (!roomUserSockets.has(roomId)) {
+    roomUserSockets.set(roomId, new Map());
   }
-  roomUserMap.get(roomId).add(JSON.stringify({ id: account, name: name, pic: pic }));
 
-  // 廣播加入訊息
-  io.to(roomId).emit('chatMessage', {
-    senderId: 'system',
-    message: `使用者 ${name} 已加入聊天室`,
-    caller: { id: account, name: name, pic: pic },
-    createDate: new Date(),
-  });
+  const roomMap = roomUserSockets.get(roomId);
 
-  // 傳送目前在線使用者清單
-  const users = Array.from(roomUserMap.get(roomId)).map(JSON.parse);
-  io.to(roomId).emit('onlineUsers', users);
+  // ✅ 初始化使用者
+  const isNewUser = !roomMap.has(account);
+  if (isNewUser) {
+    roomMap.set(account, {
+      sockets: new Set(),
+      info: { account, name, pic },
+    });
+  }
 
-  // 處理文字訊息
-  socket.on('chatMessage', (msg) => {
-    console.log(`${name}:`, msg.message);
-    socket.to(roomId).emit('chatMessage', msg);
-  });
+  const userData = roomMap.get(account);
+  const isFirstJoin = userData.sockets.size === 0;
 
-  // 處理離線
-  socket.on('disconnect', () => {
-    console.log(`${name} 離開房間`);
+  userData.sockets.add(socket.id);
 
-    const users = roomUserMap.get(roomId);
-    if (users) {
-      for (const u of users) {
-        const user = JSON.parse(u);
-        if (user.id === account) {
-          users.delete(u);
-          break;
-        }
-      }
-
-      if (users.size === 0) {
-        roomUserMap.delete(roomId);
-      }
-    }
-
-    socket.to(roomId).emit('chatMessage', {
+  // ✅ 僅第一次連線顯示「已加入」
+  if (isFirstJoin) {
+    io.to(roomId).emit('chatMessage', {
       senderId: 'system',
-      message: `使用者 ${name} 離開聊天室`,
+      message: `使用者 ${name} 已加入聊天室`,
+      caller: { id: account, name, pic },
       createDate: new Date(),
     });
 
-    io.to(roomId).emit('onlineUsers', Array.from(roomUserMap.get(roomId) || []).map(JSON.parse));
+    // ✅ 傳送「新增」後的 onlineUsers 給全部人
+    const updatedUsers = Array.from(roomMap.entries()).map(([id, { info }]) => ({
+      id,
+      name: info.name,
+      pic: info.pic,
+    }));
+    
+    io.to(roomId).emit('onlineUsers', updatedUsers);
+  } else {
+    // ✅ 若不是第一次進來，不發 chatMessage、不推送 onlineUsers
+    // → 保持原來畫面
+  }
+
+  // ✅ 接收聊天訊息
+  socket.on('chatMessage', (msg) => {
+    socket.to(roomId).emit('chatMessage', msg);
+  });
+
+  // ✅ 處理離線
+  socket.on('disconnect', () => {
+    const roomMap = roomUserSockets.get(roomId);
+    if (!roomMap) return;
+
+    const userData = roomMap.get(account);
+    if (!userData) return;
+
+    userData.sockets.delete(socket.id);
+
+    const isCompletelyDisconnected = userData.sockets.size === 0;
+
+    if (isCompletelyDisconnected) {
+      roomMap.delete(account);
+
+      // ✅ 所有視窗都關閉 → 廣播離開訊息
+      io.to(roomId).emit('chatMessage', {
+        senderId: 'system',
+        message: `使用者 ${name} 離開聊天室`,
+        createDate: new Date(),
+      });
+
+      // ✅ 傳送刪除後的 onlineUsers 給全部人
+      const updatedUsers = Array.from(roomMap.entries()).map(([id, { info }]) => ({
+        id,
+        ...info,
+      }));
+      io.to(roomId).emit('onlineUsers', updatedUsers);
+    }
+    // ✅ 若房間空了，清除 room
+    if (roomMap.size === 0) {
+      roomUserSockets.delete(roomId);
+    }
   });
 });
 
 server.listen(3001, () => {
-  console.log('Socket.IO server 運行中：http://localhost:3001');
+  console.log('✅ Socket.IO server running at http://localhost:3001');
 });

@@ -21,6 +21,14 @@ export default defineNuxtConfig({
       title: "Chatroom",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" },
+        {
+          name: "description",
+          content: "Chatroom 是一個即時通訊平台 SideProject，支援多種登入方式一對一聊天"
+        },
+        {
+          name: "keywords",
+          content: "Chatroom, 即時通訊, LINE 登入, GitHub 登入, Nuxt3, Socket.IO"
+        },
       ],
       link: [],
     },
