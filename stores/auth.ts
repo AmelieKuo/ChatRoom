@@ -57,22 +57,20 @@ export const useAuthStore = defineStore("auth", () => {
       expires: maxDate,
     });
 
-    if(mode === "development"){
-      const { data: response } = await FETCH_AUTH.Login( { data: requestBody } );
-      profile = {
-        account: response.account,
-        name: response.name,
-        pic: response.pic,
-      };
+    // if(mode === "development"){
+    //   const { data: response } = await FETCH_AUTH.Login( { data: requestBody } );
+    //   profile = {
+    //     account: response.account,
+    //     name: response.name,
+    //     pic: response.pic,
+    //   };
       
-      loginToken.value = JSON.stringify(response.token);
-    }
+    //   loginToken.value = JSON.stringify(response.token);
+    // }
     
     await setUserProfile(profile);
   
-    if(mode === "development"){
-      loginToken.value = createFakeJwt(profile);
-    }
+    loginToken.value = createFakeJwt(profile);
     router.push("/");
   };
 
