@@ -93,6 +93,22 @@ const handleClickToRoom = async() => {
     if (!formRef.value) return;
     await formRef.value.validate(async(errors) => {
         if (!errors) {
+
+          // 判斷匿名與房號是否有重複
+          const oldNickname = sessionStorage.getItem(`nickname-${formData.value.chatRoomCode}`);
+
+          if(oldNickname === formData.value.nickname){
+            const currentModal = modal.create({
+              title: "匿名名稱已存在，請先關閉其他聊天視窗再換匿名名稱",
+              preset: "dialog",
+            });
+            currentModal.destroy();
+            formData.value.nickname = "";
+            return;
+          }
+
+          // 儲存匿名到 sessionStorage
+          sessionStorage.setItem(`nickname-${formData.value.chatRoomCode}`, formData.value.nickname || userProfile.value.name);
           router.push(`/chat/${formData.value.chatRoomCode}`);
         }
     });
@@ -105,6 +121,7 @@ const createFormData = ref({
   chatRoomPassword: "",
   chatRoomName:"",
   description:"",
+  nickname: "",
 });
 
  const createFormRules: FormRules = {
@@ -119,6 +136,9 @@ const createFormData = ref({
   ],
   description:[
     { required: true, message: "必填" },
+  ],
+  nickname: [
+    { required: false },
   ],
 };
 
@@ -156,6 +176,16 @@ onMounted(() => {});
       </p>
   
         <n-form ref="formRef" :model="formData" :rules="rules" :show-label="false" class="w-full">
+          <n-form-item path="nickname">
+            <n-input
+              v-model:value="formData.nickname"
+              placeholder="匿名名稱"
+              type="text"
+              autosize
+              style="width: 100%; min-height: 50px"
+            />
+          </n-form-item>
+          
           <n-form-item path="chatRoomCode">
             <n-input
               v-model:value="formData.chatRoomCode"
@@ -164,6 +194,7 @@ onMounted(() => {});
               autosize
               style="width: 100%; min-height: 50px"/>
           </n-form-item>
+          
           <!-- <n-form-item path="chatRoomPassword">
             <n-input
               v-model:value="formData.chatRoomPassword"
