@@ -54,11 +54,11 @@ export default defineNuxtConfig({
   vite: {
     server: {
         proxy: process.env.NODE_ENV !== "development" ? {} : {
-          "/chatRoom/nuxt-api": {
-            target: `${process.env.NUXT_BASE_URL}/nuxt-api`,
+          "/chatRoom/api": {
+            target: `${process.env.NUXT_BASE_URL}/api`,
             changeOrigin: true,
             secure: false,
-            rewrite: (path) => path.replace(/^\/chatRoom\/nuxt-api/, "/nuxt-api"),
+            rewrite: (path) => path.replace(/^\/chatRoom\/nuxt-api/, "/api"),
           },
       }
     },

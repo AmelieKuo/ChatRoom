@@ -20,7 +20,7 @@ const { userProfile } = storeToRefs(useAuth);
 
 const roomInfo = ref({
   id: route.params.id,
-  chatRoomName: "聊天室編號",
+  chatRoomName: "聊天室",
   description: 'This is a chat room',
 });
 
@@ -121,7 +121,6 @@ const getIOContent = async () => {
     onIOMessage(socketIo.value, (msg) => {
       originChatContent.value.push(msg);
       chatContent.value = [...originChatContent.value];
-      console.log(chatContent.value);
       scrollToBottom();
     });
 
@@ -188,7 +187,7 @@ watch(() => userProfile.value.account, async (newAccount) => {
     <div class="p-5 min-h-screen md:min-h-fit box-border scroll-smooth">
       <div class="bg-black font-bold text-white p-[5px] text-center text-[20px] rounded-[33px]">
         {{ roomInfo.chatRoomName }}
-        <span class="text-[12px] text-gray-200">{{ roomInfo.id }}</span>
+        <span class="text-[12px] text-gray-200">房號：{{ roomInfo.id }}</span>
       </div>
       <div class="w-full h-[calc(100dvh-33px-5px-10px-3rem)] mt-[10px] bg-white rounded-[33px] flex flex-col p-5 divide-y-2">
         <div class="w-full flex-1 overflow-hidden">
