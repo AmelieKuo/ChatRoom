@@ -43,7 +43,7 @@ export const useGithub = () => {
       redirect_uri: import.meta.env.DEV ? "http://localhost:3000/redirect/github" : `${baseUrl}/redirect/github`
     };
 
-    const { data, error } = await useFetch("/api/githubToken", {
+    const { data, error } = await useFetch("/nuxt-api/githubToken", {
       method: "POST",
       body: requestBody
     });
