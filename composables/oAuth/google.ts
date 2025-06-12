@@ -15,13 +15,13 @@ export const useGoogle = () => {
       "Authorization": `Bearer ${googleAuth.access_token}`,
     };
 
-    const response = await FETCH_GOOGLE.GetProfile({headers});
+    const { data } = await FETCH_GOOGLE.GetProfile({headers});
 
-    if (response) {
+    if (data) {
       const accountInfo = {
-        account: response.sub,
-        name: response.name,
-        pic: response.picture,
+        account: data.sub,
+        name: data.name,
+        pic: data.picture,
       };
       globalLogin(accountInfo);
     }
