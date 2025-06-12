@@ -9,7 +9,7 @@ import { useRouter, useRoute } from 'vue-router';
 const loginToken = useCookie('roomToken') as any
 
 const { originChatContent, newSocketInstance, onMessage, sendMessage } = useWebsocket();
-const { newIOConnect, onIOMessage, sendIOMessage, onOnlineUsers } = useSocketIO();
+const { newIOConnect, onIOMessage, sendIOMessage, onOnlineUsers, onSocketList } = useSocketIO();
 
 const { $dayjs } = useNuxtApp() as any;
 const route = useRoute();
@@ -97,6 +97,7 @@ const sendWebSocket = () => {
 
 //#region SocketIO
 const onlineUserList = ref<any[]>([]);
+const socketsList = ref<any[]>([]);
 const userNickname = ref<string | null>(null);
 const getIOContent = async () => {
   const roomKey = route.params.id as string;
@@ -131,6 +132,14 @@ const getIOContent = async () => {
     onOnlineUsers(socketIo.value, (users) => {
       onlineUserList.value = users;
     });
+
+    // 接收在線裝置
+    onSocketList(socketIo.value, ({ account, socketIds }) => {
+      console.log({ account, socketIds });
+      if (account === userProfile.value.account) {
+        socketsList.value = socketIds;
+      };
+    });
   } else {
     router.push('/');
   }
@@ -158,6 +167,10 @@ const sendSocketIO = () => {
 };
 //#endregion
 
+const isMobileBrowser = () => {
+  return navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)
+};
+
 const isComposing = ref(false);
 
 const send = () => {
@@ -166,8 +179,10 @@ const send = () => {
 };
 
 const handleKeydown = (e: KeyboardEvent) => {
+ 
   if (e.key === "Enter") {
       if (isComposing.value) return;
+      if (isMobileBrowser()) return;
       if (!e.shiftKey) {
         e.preventDefault(); // 禁止換行
         send();
@@ -184,11 +199,23 @@ const handleCompositionEnd = () => {
   isComposing.value = false;
 };
 
+const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+  if(socketsList.value.length === 1){
+    sessionStorage.removeItem(`nickname-${roomInfo.value.id}`);
+    loginToken.value = '';
+  };
+};
+
 
 onMounted(async () => {
   if (userProfile.value.account) {
     await getIOContent();
   }
+  window.addEventListener('beforeunload', handleBeforeUnload);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 
 watch(() => userProfile.value.account, async (newAccount) => {
@@ -203,16 +230,16 @@ watch(() => userProfile.value.account, async (newAccount) => {
     <div class="p-5 min-h-screen md:min-h-fit box-border scroll-smooth">
       <div class="bg-black font-bold text-white p-[5px] text-center text-[20px] rounded-[33px]">
         {{ roomInfo.chatRoomName }}
-        <span class="text-[12px] text-gray-200">房號：{{ roomInfo.id }}</span>
+        <span class="text-[1rem] text-gray-200">房號：{{ roomInfo.id }}</span>
       </div>
-      <div class="w-full h-[calc(100dvh-33px-5px-10px-3rem)] mt-[10px] bg-white rounded-[33px] flex flex-col p-5 divide-y-2">
+      <div class="w-full h-[calc(100lvh-33px-5px-10px-3rem)] mt-[10px] bg-white rounded-[33px] flex flex-col p-5 divide-y-2">
         <div class="w-full flex-1 overflow-hidden">
           <p v-show="onlineUserList.length === 2" class="text-[20px] text-left p-2 shadow-[0_0_6px_rgba(0,0,0,0.2)]">
             {{ onlineUserList.find(user => user.id !== userProfile.account)?.name }}
           </p>
           <ul
             ref="chatWindow"
-            class="scrollbar h-[calc(100%-23px-39px)] overflow-y-auto py-2 flex flex-col gap-10 pr-[1px]"
+            class="scrollbar h-[calc(100%-23px-39px)] overflow-y-auto py-2 flex flex-col gap-4 pr-[1px]"
           >
             <li
               v-for="(msg, index) in chatContent"
@@ -250,7 +277,7 @@ watch(() => userProfile.value.account, async (newAccount) => {
                       <!-- 訊息 -->
                       <div
                         :class="msg.senderId === userProfile.account ? 'bg-green-200 max-w-[calc(90%-56px)]' : 'bg-gray-200 max-w-[calc(90%-56px)]'"
-                        class="w-fit p-[10px_20px] rounded-[15px] overflow-hidden whitespace-pre-wrap break-words"
+                        class="w-fit p-[10px_20px] rounded-[15px] overflow-hidden whitespace-pre-wrap break-words text-[1rem]"
                       >
                         {{ msg.message }}
                       </div>
@@ -258,10 +285,12 @@ watch(() => userProfile.value.account, async (newAccount) => {
                       <!-- 時間/已讀 -->
                       <div
                         :class="msg.senderId === userProfile.account ? 'items-end order-first' : 'items-start order-last'"
-                        class="self-end flex flex-col text-[10px] gap-[2px]"
+                        class="self-end flex flex-col text-[0.65rem] gap-[2px]"
                       >
                         <p>{{ msg.isRead ? '已讀' : '' }}</p>
-                        <p>{{ $dayjs(msg.createDate).format('MM/DD hh:mm') }}</p>
+                        <p v-if="index === chatContent.length - 1 || $dayjs(chatContent[index + 1]?.msg?.createDate).format('MM/DD hh:mm') !== $dayjs(msg.createDate).format('MM/DD hh:mm')">
+                          {{ $dayjs(msg.createDate).format('MM/DD hh:mm') }}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -281,7 +310,7 @@ watch(() => userProfile.value.account, async (newAccount) => {
               type="textarea"
               :autosize="{ minRows: 3, maxRows: 5 }"
               placeholder="請輸入訊息..."
-              class="rounded-none h-full"
+              class="rounded-none h-full text-[1rem]"
               @keydown="handleKeydown"
               @compositionstart="handleCompositionStart"
               @compositionend="handleCompositionEnd"

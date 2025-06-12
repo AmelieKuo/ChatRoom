@@ -46,10 +46,16 @@ export const useSocketIO = () => {
     socket.on('onlineUsers', handler);
   };
 
+  // 監聽線上裝置
+  const onSocketList = (socket: Socket, handler: (payload: { account: string; socketIds: string[] }) => void): void => {
+    socket.on('socketsList', handler);
+  };
+
   return {
     newIOConnect,
     sendIOMessage,
     onIOMessage,
     onOnlineUsers,
+    onSocketList
   };
 };
