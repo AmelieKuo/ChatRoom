@@ -1,18 +1,11 @@
-export default function handleServiceResult(error, message, data) {
-  console.log(error, message, data);
-  if (error) {
-    const fail = {
-      error,
-      data,
-      msg: message,
-    };
-    return fail;
-  }
-  const success = {
-    error: null,
+export default function handleServiceResult(
+  error: any,
+  message: string,
+  data: any
+) {
+  return {
+    error,
     data,
     msg: message,
   };
-  return success;
 }
-
