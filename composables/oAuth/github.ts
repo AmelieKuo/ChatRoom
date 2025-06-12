@@ -20,13 +20,13 @@ export const useGithub = () => {
       Authorization: `Bearer ${accessToken}`
     };
 
-    const resp = await FETCH_GITHUB.GetProfile( { headers, handleError } );
+    const { data } = await FETCH_GITHUB.GetProfile( { headers, handleError } );
 
-    if (resp) {
+    if (data) {
       const accountInfo = {
-        account: resp.id,
-        name: resp.login,
-        pic: resp.avatar_url,
+        account: data.id,
+        name: data.login,
+        pic: data.avatar_url,
       };
 
       globalLogin(accountInfo);
@@ -43,7 +43,7 @@ export const useGithub = () => {
       redirect_uri: mode === "development" ? "http://localhost:3000/redirect/github" : `${baseUrl}/redirect/github`
     };
 
-    const { data, error } = await useFetch("/nuxt-api/githubToken", {
+    const { data, error } = await useFetch("/api/githubToken", {
       method: "POST",
       body: requestBody
     });
@@ -58,7 +58,7 @@ export const useGithub = () => {
       router.push("/login");
     }
 
-    const token = data.value.access_token;
+    const token = (data.value as { access_token: string })?.access_token;
     await getGithubProfile(token);
   };
 

@@ -10,6 +10,7 @@ onBeforeMount(async() => {
     router.push("/login");
     return;
   }
+
   switch (route.params.id) {
     case "line":
       await getLineToken();

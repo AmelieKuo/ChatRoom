@@ -18,7 +18,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: process.env.NUXT_TITLE || "Default Title",
+      title: "Chatroom",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" },
       ],

@@ -11,6 +11,7 @@ const useModal = createDiscreteApi(["modal"]);
 const { modal } = useModal;
 
 const useAuth = useAuthStore();
+const { setUserProfile } = useAuth;
 const { userProfile } = storeToRefs(useAuth);
 
 const loginToken = useCookie("roomToken");
@@ -121,6 +122,13 @@ const createFormData = ref({
   ],
 };
 
+/** 登出 */
+const handleSignOut = async() => {
+  loginToken.value = "";
+  setUserProfile({});
+  router.push("/login");
+};
+
 onMounted(() => {});
 </script>
 
@@ -174,6 +182,13 @@ onMounted(() => {});
       >
         進入聊天室
       </n-button>
+
+      <div
+        class="mt-[3px] w-full font-bold h-[50px] text-center text-gray-300 hover:text-[#63e2b7] cursor-pointer"
+        @click="handleSignOut"
+      >
+        登出
+      </div>
     </div>
   
     <n-modal

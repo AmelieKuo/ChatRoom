@@ -34,12 +34,12 @@ export const useLine = () => {
         client_id: LineChannel,
       }).toString();
 
-      const response = await FETCH_LINE.GetProfile({data:requestBody, headers, handleError});
-      if (response) {
+      const { data } = await FETCH_LINE.GetProfile({data:requestBody, headers, handleError});
+      if (data) {
         const accountInfo = {
-          account: response.sub,
-          name: response.name,
-          pic: response.picture,
+          account: data.sub,
+          name: data.name,
+          pic: data.picture,
         };
         globalLogin(accountInfo);
       }
@@ -58,15 +58,15 @@ export const useLine = () => {
         grant_type: "authorization_code",
         code,
         client_id: LineChannel,
-        redirect_uri: "http://localhost:3000/redirect/line",
+        redirect_uri: mode === "development" ? "http://localhost:3000/redirect/line" : `${baseUrl}/redirect/line`,
         client_secret: LineSecret,
       }).toString();
 
       const headers = { "Content-Type": "application/x-www-form-urlencoded" };
-      const tokenResponse = await FETCH_LINE.GetToken({ data: requestBody, headers, handleError });
+      const { data } = await FETCH_LINE.GetToken({ data: requestBody, headers, handleError });
 
-      if (tokenResponse?.access_token && tokenResponse?.id_token) {
-        const { access_token, id_token } = tokenResponse;
+      if (data?.access_token && data?.id_token) {
+        const { access_token, id_token } = data;
         await getLineProfile(access_token, id_token);
       }
     } catch (error) {
@@ -74,21 +74,21 @@ export const useLine = () => {
     }
   };
 
-  const handleError = (error: any) => {
-    const { url, _data = null, message } = error;
-    const { error_description } = _data ? _data : null;
-    
-    /** Line OAuth2.0 錯誤 */
+  const handleError = (error: any): { error: any; data: null; msg: string } => {
+    const { url = "", _data = {}, statusText = "LINE API Error" } = error || {};
+    const { error_description = "未知錯誤" } = _data;
+  
+    /** Line OAuth2.0 錯誤處理 */
     if (url.includes("api.line.me") && error_description === "invalid_request") {
       globalLoginOut();
     }
-
+  
     return {
       error,
       data: null,
-      msg: message
+      msg: `${statusText}: ${error_description}`
     };
-  }
+  };  
 
   return { lineLogin, getLineToken, getLineProfile, handleError };
 };
