@@ -15,7 +15,7 @@ export const useSocketIO = () => {
 
     // 建立連線
     socket.on('connect', () => {
-      console.log('Socket.IO 已連線:', socket.id);
+      console.log('Socket.IO 已連線');
     });
 
     // 斷線
