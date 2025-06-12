@@ -8,7 +8,7 @@ const loading = ref(false);
     <teleport to="body">
       <section
         v-if="loading"
-        class="absolute top-0 left-0 w-full h-[100vh] bg-white/70 z-2000 flex justify-center items-center flex-col"
+        class="absolute top-0 left-0 w-full h-100% bg-white/70 z-2000 flex justify-center items-center flex-col"
       >
         <div class="loader" />
         Loading...
