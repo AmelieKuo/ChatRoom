@@ -57,7 +57,7 @@ export const useAuthStore = defineStore("auth", () => {
       expires: maxDate,
     });
 
-    if(mode !== "development"){
+    if(mode === "development"){
       const { data: response } = await FETCH_AUTH.Login( { data: requestBody } );
       profile = {
         account: response.account,
