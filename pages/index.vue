@@ -164,7 +164,7 @@ onMounted(() => {});
               autosize
               style="width: 100%; min-height: 50px"/>
           </n-form-item>
-          <n-form-item path="chatRoomPassword">
+          <!-- <n-form-item path="chatRoomPassword">
             <n-input
               v-model:value="formData.chatRoomPassword"
               placeholder="請輸入密碼"
@@ -172,7 +172,7 @@ onMounted(() => {});
               autosize
               style="width: 100%; min-height: 50px"
             />
-          </n-form-item>
+          </n-form-item> -->
        </n-form>
   
       <n-button
