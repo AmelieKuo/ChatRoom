@@ -87,7 +87,7 @@ const sendWebSocket = () => {
     chatRoomCode: roomInfo.value.id,
     senderId: userProfile.value.account,
     message: messageInput.value,
-    createDate: new Date(),
+    createDate: new Date().toISOString(),
   };
 
   sendMessage(socket.value, msg);
@@ -205,6 +205,13 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
   };
 };
 
+const isSameTime = (old: any, newMsg: any) => {
+  if (!old || !newMsg) return false;
+  const oldTime = $dayjs(old.createDate);
+  const newTime = $dayjs(newMsg.createDate);
+  return oldTime.isSame(newTime, 'minute');
+};
+
 
 onMounted(async () => {
   if (userProfile.value.account) {
@@ -242,7 +249,7 @@ watch(() => userProfile.value.account, async (newAccount) => {
           >
             <li
               v-for="(msg, index) in chatContent"
-              :key="index"
+              :key="`${msg.senderId}_${msg.createDate}`"
               class="w-full"
               :class="msg.senderId === userProfile.account ? 'self-end' : msg.senderId === 'system' ? 'self-center' : 'self-start'"
             >
@@ -287,8 +294,8 @@ watch(() => userProfile.value.account, async (newAccount) => {
                         class="self-end flex flex-col text-[0.65rem] gap-[2px]"
                       >
                         <p>{{ msg.isRead ? '已讀' : '' }}</p>
-                        <p v-if="index === chatContent.length - 1 || $dayjs(chatContent[index + 1]?.msg?.createDate).format('MM/DD hh:mm') !== $dayjs(msg.createDate).format('MM/DD hh:mm')">
-                          {{ $dayjs(msg.createDate).format('MM/DD hh:mm') }}
+                        <p v-if="index === chatContent.length - 1 || !isSameTime(msg, chatContent[index + 1])">
+                          {{ $dayjs(msg.createDate).format('MM/DD HH:mm') }}
                         </p>
                       </div>
                     </div>
