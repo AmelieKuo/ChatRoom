@@ -5,24 +5,16 @@ interface RequestInfo {
   params?: any;
   data?: any;
   base?: string;
-  headers?: object;
+  headers?: Record<string, string>;
   isUnLoad?: boolean;
   error?: (error: any) => { error: any; data: any | null; msg: string };
 }
 
 function createRequest() {
   const get = (requestInfo: RequestInfo) => {
-    const {
-      url,
-      params,
-      base,
-      headers,
-      isUnLoad = false,
-      error,
-    } = requestInfo;
-
+    const { url, params, base, headers, isUnLoad = false, error } = requestInfo;
     return instance(url, {
-      method: "GET",
+      method: "get",
       params,
       baseURL: base,
       headers,
@@ -31,15 +23,7 @@ function createRequest() {
   };
 
   const post = (requestInfo: RequestInfo) => {
-    const {
-      url,
-      data,
-      base,
-      headers,
-      isUnLoad = false,
-      error,
-    } = requestInfo;
-
+    const { url, data, base, headers, isUnLoad = false, error } = requestInfo;
     return instance(url, {
       method: "post",
       body: data,
@@ -50,40 +34,24 @@ function createRequest() {
   };
 
   const put = (requestInfo: RequestInfo) => {
-    const {
-      url,
-      data,
-      base,
-      headers,
-      isUnLoad = false,
-      error,
-    } = requestInfo;
-
+    const { url, data, base, headers, isUnLoad = false, error } = requestInfo;
     return instance(url, {
       method: "put",
-      body:data,
+      body: data,
       baseURL: base,
       headers,
-      error
+      error,
     }, isUnLoad);
   };
 
   const del = (requestInfo: RequestInfo) => {
-    const {
-      url,
-      data,
-      base,
-      headers,
-      isUnLoad = false,
-      error,
-    } = requestInfo;
-
+    const { url, data, base, headers, isUnLoad = false, error } = requestInfo;
     return instance(url, {
       method: "delete",
-      body:data,
+      body: data,
       baseURL: base,
       headers,
-      error
+      error,
     }, isUnLoad);
   };
 
