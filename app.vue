@@ -21,7 +21,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="w-full h-100% min-h-[100lvh]">
+  <div class="w-full h-100% min-h-[100dvh]">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

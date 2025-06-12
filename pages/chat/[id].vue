@@ -135,7 +135,6 @@ const getIOContent = async () => {
 
     // 接收在線裝置
     onSocketList(socketIo.value, ({ account, socketIds }) => {
-      console.log({ account, socketIds });
       if (account === userProfile.value.account) {
         socketsList.value = socketIds;
       };
@@ -232,14 +231,14 @@ watch(() => userProfile.value.account, async (newAccount) => {
         {{ roomInfo.chatRoomName }}
         <span class="text-[1rem] text-gray-200">房號：{{ roomInfo.id }}</span>
       </div>
-      <div class="w-full h-[calc(100lvh-33px-5px-10px-3rem)] mt-[10px] bg-white rounded-[33px] flex flex-col p-5 divide-y-2">
+      <div class="w-full h-[calc(100dvh-33px-5px-10px-3rem)] mt-[10px] bg-white rounded-[33px] flex flex-col px-5 py-5 divide-y-2">
         <div class="w-full flex-1 overflow-hidden">
           <p v-show="onlineUserList.length === 2" class="text-[20px] text-left p-2 shadow-[0_0_6px_rgba(0,0,0,0.2)]">
             {{ onlineUserList.find(user => user.id !== userProfile.account)?.name }}
           </p>
           <ul
             ref="chatWindow"
-            class="scrollbar h-[calc(100%-23px-39px)] overflow-y-auto py-2 flex flex-col gap-4 pr-[1px]"
+            class="scrollbar h-[calc(100%-23px-39px)] md:h-[calc(100%-15px)] overflow-y-auto py-2 flex flex-col gap-4 pr-[1px]"
           >
             <li
               v-for="(msg, index) in chatContent"
@@ -303,7 +302,7 @@ watch(() => userProfile.value.account, async (newAccount) => {
           </ul>
         </div>
         <div>
-          <n-input-group class="msg__input h-full flex-col md:flex-row">
+          <n-input-group class="msg__input h-full flex-col md:min-h-[130px] md:flex-row">
             <n-input
               v-model:value="messageInput"
               round
@@ -321,7 +320,7 @@ watch(() => userProfile.value.account, async (newAccount) => {
             >
               <n-icon
                 :component="Send16Filled"
-                size="20"
+                size="30"
                 class="text-gray-400 hover:text-gray-600 cursor-pointer"
               />
             </div>
