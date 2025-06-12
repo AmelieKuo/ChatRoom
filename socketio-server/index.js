@@ -63,10 +63,15 @@ io.on('connection', (socket) => {
     }));
     
     io.to(roomId).emit('onlineUsers', updatedUsers);
-  } else {
-    // ✅ 若不是第一次進來，不發 chatMessage、不推送 onlineUsers
-    // → 保持原來畫面
-  }
+  } 
+
+  // ✅ 傳送 sockets 清單
+  for (const socketId of userData.sockets) {
+    io.to(socketId).emit('socketsList', {
+      account,
+      socketIds: Array.from(userData.sockets),
+    });
+  };
 
   // ✅ 接收聊天訊息
   socket.on('chatMessage', (msg) => {
@@ -82,6 +87,14 @@ io.on('connection', (socket) => {
     if (!userData) return;
 
     userData.sockets.delete(socket.id);
+
+    // ✅ 傳送該帳號的 sockets 清單
+    for (const socketId of userData.sockets) {
+      io.to(socketId).emit('socketsList', {
+        account,
+        socketIds: Array.from(userData.sockets),
+      });
+    }
 
     const isCompletelyDisconnected = userData.sockets.size === 0;
 
@@ -101,6 +114,7 @@ io.on('connection', (socket) => {
         ...info,
       }));
       io.to(roomId).emit('onlineUsers', updatedUsers);
+
     }
     // ✅ 若房間空了，清除 room
     if (roomMap.size === 0) {
